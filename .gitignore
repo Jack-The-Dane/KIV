@@ -8,3 +8,10 @@ wheels/
 
 # Virtual environments
 .venv
+
+# Latex
+dataset/
+*.aux
+*.fls
+*.log
+*.fdb_latexmk
