@@ -1,0 +1,64 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage{times}
+% Language setting
+% Replace `english' with e.g. `spanish' to change the document language
+\usepackage[english]{babel}
+
+% Set page size and margins
+% Replace `letterpaper' with `a4paper' for UK/EU standard size
+\usepackage[a4paper,top=3cm,bottom=3cm,left=2cm,right=2cm]{geometry}
+% \usepackage[left=2.5cm,right=2.5cm,top=2.5cm,bottom=2.5cm]{geometry}
+
+\renewcommand{\baselinestretch}{1.15} 
+
+% utility packages
+\usepackage{graphicx} %allows for use of graphics
+\usepackage{float} %float options for figures as [H]
+\usepackage{subfiles} %allows for use of subfiles
+\usepackage{tabularx} %tables that fill page
+\renewcommand{\arraystretch}{1.4} % Makes rows taller
+\usepackage{booktabs} %gives rule lines for tables
+\usepackage{comment} %allows for commenting larger sections
+\usepackage[colorlinks=false,hidelinks]{hyperref} %allows for hyperreferencing with no colored links and red boxes
+
+
+% Useful packages
+\usepackage{amsmath} %gives aligned environment for equations
+\usepackage{amssymb} %usefull for math equations
+\usepackage{siunitx} %SI units
+
+
+\begin{document}
+\subfile{sections/frontpage.tex}
+
+\tableofcontents
+\thispagestyle{empty}
+
+
+\newpage
+\begin{abstract}
+The abstract should provide a comprehensive overview of your task, detailing the problem you are addressing, the algorithm you have selected/developed/applied, the dataset you used for evaluation, and the results you obtained. Please ensure the structure reflects a typical computer vision paper, focusing on clarity and conciseness.
+
+\textit{Please note that the title page, abstract, table of contents, and pages containing references are not included in the final report length. Ensure that the main body of the report does not exceed 7-8 pages.}
+\end{abstract}
+
+\newpage
+
+\subfile{sections/introduction.tex}
+\setcounter{page}{1}
+\subfile{sections/relatedworks.tex}
+\subfile{sections/methodology.tex}
+\subfile{sections/results.tex}
+\subfile{sections/discussion.tex}
+\subfile{sections/conclusion.tex}
+
+
+% References
+\newpage
+\bibliographystyle{apalike}  % Choose from: plain, apalike, ieeetr, etc.
+\bibliography{references}  % Your BibTeX file named references.bib
+
+
+\end{document}
