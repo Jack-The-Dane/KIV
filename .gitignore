@@ -10,7 +10,6 @@ wheels/
 .venv
 
 # Latex
-dataset/
 *.aux
 *.fls
 *.log
