@@ -1,0 +1,7 @@
+ , parameters      , accuracy          , precision         , recall            , f1                , method
+0, "k1: 5
+   k2: 5
+   cnn_internal: 16
+   cnn_out: 32
+   hidden: 64
+   layers: 1"      , 0.9668518518518519, 0.9620335297418631, 0.9377777777777778, 0.9496946182157955, grid-search + 5-Fold CV
