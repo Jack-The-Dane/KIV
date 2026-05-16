@@ -257,7 +257,7 @@ def evaluate(model:CNN_LSTM, test_loader, model_str:str=""):
             X_batch = X_batch.to(DEVICE)
 
             outputs = model(X_batch)
-            preds = torch.argmax(outputs, dim=1).cpu().numpy()
+            preds = torch.argmax(outputs, dim=1).to(DEVICE).numpy()
 
             all_preds.extend(preds)
             all_labels.extend(y_batch.numpy())
@@ -330,7 +330,6 @@ def grid_search(signals, labels, parameters:dict, epochs:int=20):
                     for hidden in par_hidden:
                         for layers in par_layers:
                             metrics = []
-                            c = 0
                             for train_idx, val_idx in kfold.split(signals, labels):
                                 X_train = signals[train_idx]
                                 y_train = labels[train_idx]
@@ -340,9 +339,9 @@ def grid_search(signals, labels, parameters:dict, epochs:int=20):
                                 X_test, y_test = create_dataset(X_test, y_test)
                                 train_loader = DataLoader(EEGDataset(X_train, y_train, is_train=True), batch_size=BATCH_SIZE, shuffle=True, num_workers=4)
                                 val_loader = DataLoader(EEGDataset(X_test, y_test), batch_size=BATCH_SIZE, num_workers=4)
-                                model = CNN_LSTM(k1, k2, internal, out, hidden, layers)
+                                model = CNN_LSTM(k1, k2, internal, out, hidden, layers).to(DEVICE)
                                 weights = torch.tensor([1.0, 2.0]).to(DEVICE)
-                                criterion = nn.CrossEntropyLoss(weight=weights)
+                                criterion = nn.CrossEntropyLoss(weight=weights).to(DEVICE)
                                 optimizer = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE, weight_decay=1e-4)
                                 scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', patience=3)
                                 early_stopping = EarlyStopping(patience=5, path='best_EEG_grid.pt')
@@ -362,9 +361,6 @@ def grid_search(signals, labels, parameters:dict, epochs:int=20):
                                 m = evaluate_with_return(model, test_loader)
                                 print(m)
                                 metrics.append(list(m.values()))
-                                c += 1
-                                if c == 2:
-                                    break
                             model_str = f"k1: {k1}\nk2: {k2}\ncnn_internal: {internal}\ncnn_out: {out}\nhidden: {hidden}\nlayers: {layers}"
                             avg_cv = np.mean(metrics, axis=0)
                             results.append({"parameters": model_str, 'accuracy': avg_cv[0], 'precision': avg_cv[1], 'recall': avg_cv[2], 'f1': avg_cv[3], 'method': 'grid-search + 5-Fold CV'})   
