@@ -359,11 +359,25 @@ def grid_search(signals, labels, parameters:dict, epochs:int=20):
                                 # print("\n--- Final Evaluation (Best Model) ---")
                                 model.load_state_dict(torch.load('best_EEG_grid.pt'))
                                 m = evaluate_with_return(model, test_loader)
-                                print(m)
+                                #print(m)
                                 metrics.append(list(m.values()))
+                                break
                             model_str = f"k1: {k1}\nk2: {k2}\ncnn_internal: {internal}\ncnn_out: {out}\nhidden: {hidden}\nlayers: {layers}"
                             avg_cv = np.mean(metrics, axis=0)
-                            results.append({"parameters": model_str, 'accuracy': avg_cv[0], 'precision': avg_cv[1], 'recall': avg_cv[2], 'f1': avg_cv[3], 'method': 'grid-search + 5-Fold CV'})   
+                            results.append({
+                                "parameters": model_str, 
+                                'accuracy': avg_cv[0], 
+                                'precision': avg_cv[1], 
+                                'recall': avg_cv[2], 
+                                'f1': avg_cv[3], 
+                                'method': 'grid-search + 5-Fold CV', 
+                                "k1": k1, 
+                                "k2": k2, 
+                                "cnn_internal": internal, 
+                                "cnn_out": out, 
+                                "hidden": hidden, 
+                                "layers": layers
+                                })   
                             export(results)
                             return                     
     #pd.DataFrame(results).to_csv("GridSearch_results.csv") 
