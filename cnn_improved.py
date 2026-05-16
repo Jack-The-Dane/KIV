@@ -29,6 +29,9 @@ import torch
 import torch.nn as nn
 from torch.utils.data import Dataset, DataLoader
 import pandas as pd
+from itertools import product
+from concurrent.futures import ProcessPoolExecutor, as_completed
+import multiprocessing as mp
 
 # -----------------------------
 # CONFIG
@@ -39,7 +42,7 @@ SEGMENT_LENGTH = 178  # samples (~1 second)
 BATCH_SIZE = 32
 EPOCHS = 20
 LEARNING_RATE = 1e-3
-DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
+DEVICE = "cpu" #"cuda" if torch.cuda.is_available() else "cpu"
 
 # -----------------------------
 # BANDPASS FILTER
@@ -144,18 +147,26 @@ class EEGDataset(Dataset):
 # MODEL (CNN + LSTM)
 # -----------------------------
 class CNN_LSTM(nn.Module):
-    def __init__(self, kernel_size1:int = 5, kernel_size2:int = 5, cnn_internal:int = 16, cnn_out:int = 32, hidden_size:int = 64, num_layers:int = 1):
+    def __init__(self, parameters:dict = {}):
         super(CNN_LSTM, self).__init__()
-
+        kernel_size1 = parameters.get("kernel_size1", 5)
+        kernel_size2 = parameters.get("kernel_size2", 5)
+        cnn_internal = parameters.get("cnn_internal", 16)
+        cnn_out = parameters.get("cnn_out", 32)
+        hidden_size = parameters.get("hidden_size", 64)
+        num_layers = parameters.get("num_layers", 1)
+        dropout = parameters.get("dropout", 0.0)
         # CNN feature extractor
         self.cnn = nn.Sequential(
             nn.Conv1d(1, cnn_internal, kernel_size=kernel_size1, stride=1, padding=kernel_size1//2),
             nn.ReLU(),
             nn.MaxPool1d(2),
+            nn.Dropout(dropout),
 
             nn.Conv1d(cnn_internal, cnn_out, kernel_size=kernel_size2, padding=kernel_size2//2),
             nn.ReLU(),
-            nn.MaxPool1d(2)
+            nn.MaxPool1d(2),
+            nn.Dropout(dropout)
         )
 
         # LSTM
@@ -163,7 +174,8 @@ class CNN_LSTM(nn.Module):
             input_size=cnn_out,
             hidden_size=hidden_size,
             num_layers=num_layers,
-            batch_first=True
+            batch_first=True,
+            dropout=dropout if num_layers > 1 else 0.0
         )
 
         # Fully connected
@@ -196,15 +208,15 @@ class EarlyStopping:
     def __call__(self, val_loss, model):
         if self.best_loss is None:
             self.best_loss = val_loss
-            self.save_checkpoint(model)
+            #self.save_checkpoint(model)
         elif val_loss > self.best_loss - self.min_delta:
             self.counter += 1
-            print(f"EarlyStopping counter: {self.counter} out of {self.patience}")
+            #print(f"EarlyStopping counter: {self.counter} out of {self.patience}")
             if self.counter >= self.patience:
                 self.early_stop = True
         else:
             self.best_loss = val_loss
-            self.save_checkpoint(model)
+            #self.save_checkpoint(model)
             self.counter = 0
 
     def save_checkpoint(self, model):
@@ -286,104 +298,193 @@ def evaluate_with_return(model:CNN_LSTM, test_loader):
 
     acc = accuracy_score(all_labels, all_preds)
     p, r, f1, _ = precision_recall_fscore_support(all_labels, all_preds, average='binary')
-    return {"accuracy": acc, "precision": p, "recall": r, "f1": f1}
+    conf = confusion_matrix(all_labels, all_preds, normalize="all")
+    return {"accuracy": acc, "precision": p, "recall": r, "f1": f1, "c11":conf[0][0], "c12":conf[0][1], "c21":conf[1][0], "c22":conf[1][1]}
 
 def train_epoch(model, train_loader, val_loader, criterion, optimizer):
     train_loss = train(model, train_loader, criterion, optimizer)
     val_loss = validate(model, val_loader, criterion)
     return train_loss, val_loss
-    
+
+def run_config(p, signals, labels, X_test, y_test, epochs, num_conf):
+    print(f"Configuration {num_conf} started", flush=True)
+    X_test, y_test = create_dataset(X_test, y_test)
+    #print("Created dataset", flush=True)
+    dataset = EEGDataset(X_test, y_test)
+    #print("Created EEG dataset")
+    test_loader = DataLoader(dataset, batch_size=BATCH_SIZE, num_workers=0)
+    #print("Created loader", flush=True)
+    kfold = StratifiedKFold(n_splits=5, shuffle=True)
+    #print("Created kfold", flush=True)
+
+    metrics = []
+    losses = {}
+    i = 1
+    for train_idx, val_idx in kfold.split(signals, labels):
+        print(f"Configuration {num_conf}, fold {i} started", flush=True)
+        # train_idx = torch.tensor(train_idx)
+        # val_idx = torch.tensor(val_idx)
+
+        X_train = signals[train_idx]
+        # X_train = torch.index_select(signals, 0, train_idx)
+        # y_train = torch.index_select(labels, 0, train_idx)
+        y_train = labels[train_idx]
+        X_val = signals[val_idx]
+        # X_val = torch.index_select(signals, 0, val_idx)
+        # y_val = torch.index_select(labels, 0, val_idx)
+        y_val = labels[val_idx]
+        #print("Split data", flush=True)
+        X_train, y_train = create_dataset(X_train, y_train)
+        X_val, y_val = create_dataset(X_val, y_val)
+        #print("Create datasets", flush=True)
+        train_loader = DataLoader(EEGDataset(X_train, y_train, is_train=True), batch_size=BATCH_SIZE, shuffle=True, num_workers=0)
+        val_loader = DataLoader(EEGDataset(X_val, y_val), batch_size=BATCH_SIZE, num_workers=0)
+        #print("Created all loaders", flush=True)
+        model = CNN_LSTM(p).to(DEVICE)
+        #print("Created model", flush=True)
+        weights = torch.tensor([1.0, 2.0]).to(DEVICE)
+        criterion = nn.CrossEntropyLoss(weight=weights).to(DEVICE)
+        optimizer = torch.optim.Adam(model.parameters(), lr=p.get("learning_rate", 1e-3), weight_decay=p.get("weight_decay", 1e-4))
+        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', patience=3)
+        early_stopping = EarlyStopping(patience=5, path='best_EEG_grid.pt')
+        losses[f"fold{i}_val_loss"] = []
+        losses[f"fold{i}_train_loss"] = []
+        print(f"Configuration {num_conf}, fold {i} training started", flush=True)
+        for epoch in range(epochs):
+            train_loss, val_loss = train_epoch(model, train_loader, val_loader, criterion, optimizer)
+            #print(f"Epoch {epoch+1}: Train Loss: {train_loss:.4f} | Val Loss: {val_loss:.4f}")
+            # Update Scheduler and check Early Stopping
+            scheduler.step(val_loss)
+            early_stopping(val_loss, model)
+            losses[f"fold{i}_val_loss"].append(val_loss)
+            losses[f"fold{i}_train_loss"].append(train_loss)
+            if early_stopping.early_stop:
+                #print("Early stopping triggered. Training halted.")
+                break
+        # print("\n--- Final Evaluation (Best Model) ---")
+        #model.load_state_dict(torch.load('best_EEG_grid.pt'))
+        m = evaluate_with_return(model, test_loader)
+        #print(m)
+        metrics.append(m)
+        # if i == 2:
+        #     break
+        i += 1
+
+    #avg_cv = np.mean(metrics, axis=0)
+    avg = {k: np.mean([i[k] for i in metrics]) for k in metrics[0].keys()}
+    p.update(avg)
+    p.update({
+        # 'accuracy': avg_cv[0], 
+        # 'precision': avg_cv[1], 
+        # 'recall': avg_cv[2], 
+        # 'f1': avg_cv[3], 
+        'method': 'grid-search + 5-Fold CV'
+    })
+    p.update(losses)
+    print(f"Configuration {num_conf} finished", flush=True)
+    return p
 
 def grid_search(signals, labels, parameters:dict, epochs:int=20):
-    par_kernel1 = parameters.get("kernel_size1", [5])
-    par_kernel2 = parameters.get("kernel_size2", [5])
-    par_internal = parameters.get("cnn_internal", [16])
-    par_cnn_out = parameters.get("cnn_out", [32])
-    par_hidden = parameters.get("hidden_size", [64])
-    par_layers = parameters.get("num_layers", [1])
+    keys = parameters.keys()
+    values = parameters.values()
 
-    # X_train, X_test_val, y_train, y_test_val = train_test_split(
-    #     signals, labels, test_size=0.3, random_state=42, stratify=labels
-    # )
-
-    # X_test, X_val, y_test, y_val = train_test_split(
-    #     X_test_val, y_test_val, test_size=0.5, random_state=42, stratify=y_test_val
-    # )
-
+    parameter_grid = [
+        dict(zip(keys, combo))
+        for combo in product(*values)
+    ]
+    # signals = torch.tensor(signals, dtype=torch.float32)
+    # labels = torch.tensor(labels, dtype=torch.long)
+    # Take 10% for validation, that none of the models ever see
     signals, X_test, labels, y_test = train_test_split(signals, labels, test_size=0.1, random_state=42, stratify=labels)
 
     #X_train, y_train = create_dataset(X_train, y_train)
-    X_test, y_test = create_dataset(X_test, y_test)
+    #X_test, y_test = create_dataset(X_test, y_test)
     #X_val, y_val = create_dataset(X_val, y_val)
 
     #train_loader = DataLoader(EEGDataset(X_train, y_train, is_train=True), batch_size=BATCH_SIZE, shuffle=True)
     #val_loader = DataLoader(EEGDataset(X_val, y_val), batch_size=BATCH_SIZE)
-    test_loader = DataLoader(EEGDataset(X_test, y_test), batch_size=BATCH_SIZE, num_workers=4)
-
-    kfold = StratifiedKFold(n_splits=5, shuffle=True)
+    #test_loader = DataLoader(EEGDataset(X_test, y_test), batch_size=BATCH_SIZE, num_workers=0)
+    # kfold = StratifiedKFold(n_splits=5, shuffle=True)
+    # splits = [(train_idx, val_idx) for train_idx, val_idx in kfold.split(signals, labels)]
+    #print("Splits: ", splits)
     results = []
     print("Starting grid search...")
-    for k1 in par_kernel1:
-        for k2 in par_kernel2:
-            for internal in par_internal:
-                for out in par_cnn_out:
-                    for hidden in par_hidden:
-                        for layers in par_layers:
-                            metrics = []
-                            for train_idx, val_idx in kfold.split(signals, labels):
-                                X_train = signals[train_idx]
-                                y_train = labels[train_idx]
-                                X_test = signals[val_idx]
-                                y_test = labels[val_idx]
-                                X_train, y_train = create_dataset(X_train, y_train)
-                                X_test, y_test = create_dataset(X_test, y_test)
-                                train_loader = DataLoader(EEGDataset(X_train, y_train, is_train=True), batch_size=BATCH_SIZE, shuffle=True, num_workers=4)
-                                val_loader = DataLoader(EEGDataset(X_test, y_test), batch_size=BATCH_SIZE, num_workers=4)
-                                model = CNN_LSTM(k1, k2, internal, out, hidden, layers).to(DEVICE)
-                                weights = torch.tensor([1.0, 2.0]).to(DEVICE)
-                                criterion = nn.CrossEntropyLoss(weight=weights).to(DEVICE)
-                                optimizer = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE, weight_decay=1e-4)
-                                scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', patience=3)
-                                early_stopping = EarlyStopping(patience=5, path='best_EEG_grid.pt')
-                                for epoch in range(epochs):
-                                    train_loss, val_loss = train_epoch(model, train_loader, val_loader, criterion, optimizer)
-                                    print(f"Epoch {epoch+1}: Train Loss: {train_loss:.4f} | Val Loss: {val_loss:.4f}")
+    # run_config(parameter_grid[0], signals, labels, X_test, y_test, epochs, 0, splits)
+    # return
+    ctx = mp.get_context('spawn')
+    with ProcessPoolExecutor(max_workers=3, mp_context=ctx) as executor:
+        futures = [
+            executor.submit(run_config, p, signals, labels, X_test, y_test, epochs, i)
+            for i, p in enumerate(parameter_grid[0:3])
+        ]
+        print("Submitted all configs", flush=True)
+        for f in as_completed(futures):
+            results.append(f.result())
+            print("Finished a future", flush=True)
 
-                                    # Update Scheduler and check Early Stopping
-                                    scheduler.step(val_loss)
-                                    early_stopping(val_loss, model)
+    export(results, "grid_search")
+    return results
+    
+    for p in parameter_grid:
+        metrics = []
+        losses = {}
+        i = 1
+        for train_idx, val_idx in kfold.split(signals, labels):
+            X_train = signals[train_idx]
+            y_train = labels[train_idx]
+            X_test = signals[val_idx]
+            y_test = labels[val_idx]
+            X_train, y_train = create_dataset(X_train, y_train)
+            X_test, y_test = create_dataset(X_test, y_test)
+            train_loader = DataLoader(EEGDataset(X_train, y_train, is_train=True), batch_size=BATCH_SIZE, shuffle=True, num_workers=4)
+            val_loader = DataLoader(EEGDataset(X_test, y_test), batch_size=BATCH_SIZE, num_workers=4)
+            model = CNN_LSTM(p).to(DEVICE)
+            weights = torch.tensor([1.0, 2.0]).to(DEVICE)
+            criterion = nn.CrossEntropyLoss(weight=weights).to(DEVICE)
+            optimizer = torch.optim.Adam(model.parameters(), lr=p.get("learning_rate", 1e-3), weight_decay=p.get("weight_decay", 1e-4))
+            scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', patience=3)
+            early_stopping = EarlyStopping(patience=5, path='best_EEG_grid.pt')
+            losses[f"fold{i}_val_loss"] = []
+            losses[f"fold{i}_train_loss"] = []
+            for epoch in range(epochs):
+                train_loss, val_loss = train_epoch(model, train_loader, val_loader, criterion, optimizer)
+                print(f"Epoch {epoch+1}: Train Loss: {train_loss:.4f} | Val Loss: {val_loss:.4f}")
+                # Update Scheduler and check Early Stopping
+                scheduler.step(val_loss)
+                early_stopping(val_loss, model)
+                losses[f"fold{i}_val_loss"].append(val_loss)
+                losses[f"fold{i}_train_loss"].append(train_loss)
+                if early_stopping.early_stop:
+                    print("Early stopping triggered. Training halted.")
+                    break
+            # print("\n--- Final Evaluation (Best Model) ---")
+            #model.load_state_dict(torch.load('best_EEG_grid.pt'))
+            m = evaluate_with_return(model, test_loader)
+            #print(m)
+            metrics.append(m)
+            # if i == 2:
+            #     break
+            i += 1
 
-                                    if early_stopping.early_stop:
-                                        print("Early stopping triggered. Training halted.")
-                                        break
-                                # print("\n--- Final Evaluation (Best Model) ---")
-                                model.load_state_dict(torch.load('best_EEG_grid.pt'))
-                                m = evaluate_with_return(model, test_loader)
-                                #print(m)
-                                metrics.append(list(m.values()))
-                                break
-                            model_str = f"k1: {k1}\nk2: {k2}\ncnn_internal: {internal}\ncnn_out: {out}\nhidden: {hidden}\nlayers: {layers}"
-                            avg_cv = np.mean(metrics, axis=0)
-                            results.append({
-                                "parameters": model_str, 
-                                'accuracy': avg_cv[0], 
-                                'precision': avg_cv[1], 
-                                'recall': avg_cv[2], 
-                                'f1': avg_cv[3], 
-                                'method': 'grid-search + 5-Fold CV', 
-                                "k1": k1, 
-                                "k2": k2, 
-                                "cnn_internal": internal, 
-                                "cnn_out": out, 
-                                "hidden": hidden, 
-                                "layers": layers
-                                })   
-                            export(results)
-                            return                     
-    #pd.DataFrame(results).to_csv("GridSearch_results.csv") 
+        #avg_cv = np.mean(metrics, axis=0)
+        avg = {k: np.mean([i[k] for i in metrics]) for k in metrics[0].keys()}
+        p.update(avg)
+        p.update({
+            # 'accuracy': avg_cv[0], 
+            # 'precision': avg_cv[1], 
+            # 'recall': avg_cv[2], 
+            # 'f1': avg_cv[3], 
+            'method': 'grid-search + 5-Fold CV'
+        })
+        p.update(losses)
+        results.append(p)
+    export(results, "grid_search")
 
-def export(results):
-    pd.DataFrame(results).to_csv("GridSearch_results.csv", index=False) 
+def export(results, name:str):
+    df = pd.DataFrame(results)
+    df.to_csv(name + ".csv", index=False)
+    df.to_parquet(name + ".parquet")
+
 
 # -----------------------------
 # MAIN PIPELINE
@@ -398,32 +499,32 @@ def main():
     signals = np.array(signals)
     labels = np.array(labels)
 
-    # Create split first, and then segment, to avoid data leakage
-    print("Train/Test split...")
-    X_train, X_test_val, y_train, y_test_val = train_test_split(
-        signals, labels, test_size=0.3, random_state=42, stratify=labels
-    )
+    # # Create split first, and then segment, to avoid data leakage
+    # print("Train/Test split...")
+    # X_train, X_test_val, y_train, y_test_val = train_test_split(
+    #     signals, labels, test_size=0.3, random_state=42, stratify=labels
+    # )
 
-    X_test, X_val, y_test, y_val = train_test_split(
-        X_test_val, y_test_val, test_size=0.5, random_state=42, stratify=y_test_val
-    )
+    # X_test, X_val, y_test, y_val = train_test_split(
+    #     X_test_val, y_test_val, test_size=0.5, random_state=42, stratify=y_test_val
+    # )
 
-    print("Segmenting...")
-    X_train, y_train = create_dataset(X_train, y_train)
-    X_test, y_test = create_dataset(X_test_val, y_test_val)
-    X_val, y_val = create_dataset(X_val, y_val)
+    # print("Segmenting...")
+    # X_train, y_train = create_dataset(X_train, y_train)
+    # X_test, y_test = create_dataset(X_test_val, y_test_val)
+    # X_val, y_val = create_dataset(X_val, y_val)
 
-    train_loader = DataLoader(EEGDataset(X_train, y_train, is_train=True), batch_size=BATCH_SIZE, shuffle=True)
-    val_loader = DataLoader(EEGDataset(X_val, y_val), batch_size=BATCH_SIZE)
-    test_loader = DataLoader(EEGDataset(X_test, y_test), batch_size=BATCH_SIZE)
+    # train_loader = DataLoader(EEGDataset(X_train, y_train, is_train=True), batch_size=BATCH_SIZE, shuffle=True)
+    # val_loader = DataLoader(EEGDataset(X_val, y_val), batch_size=BATCH_SIZE)
+    # test_loader = DataLoader(EEGDataset(X_test, y_test), batch_size=BATCH_SIZE)
 
-    model = CNN_LSTM().to(DEVICE)
+    # model = CNN_LSTM().to(DEVICE)
 
-    weights = torch.tensor([1.0, 2.0]).to(DEVICE)
-    criterion = nn.CrossEntropyLoss(weight=weights)
-    optimizer = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE, weight_decay=1e-4)
-    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', patience=3)
-    early_stopping = EarlyStopping(patience=5, path='best_EEG.pt')
+    # weights = torch.tensor([1.0, 2.0]).to(DEVICE)
+    # criterion = nn.CrossEntropyLoss(weight=weights)
+    # optimizer = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE, weight_decay=1e-4)
+    # scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', patience=3)
+    # early_stopping = EarlyStopping(patience=5, path='best_EEG.pt')
 
     # 4. Training Loop
     # print("--- Starting Training ---")
@@ -448,12 +549,15 @@ def main():
 
     print("Running grid search...")
     parameters = {
-        "kernel_size1": [5, 9],
-        "kernel_size2": [5, 9],
-        "cnn_internal": [16, 32],
-        "cnn_out": [32, 64],
-        "hidden_size": [64, 128],
-        "num_layers": [1, 2]
+        "kernel_size1": [5, 9, 13],
+        "kernel_size2": [5, 9, 13],
+        "cnn_internal": [16, 32, 64],
+        "cnn_out": [32, 64, 128],
+        "hidden_size": [64, 128, 256],
+        "num_layers": [1, 2, 3],
+        "dropout": [0.0, 0.2, 0.5],
+        "learning_rate": [1e-2, 1e-3, 1e-4, 1e-5],
+        "weight_decay": [1e-3, 1e-4, 1e-5]
     }
     grid_search(signals, labels, parameters, 20)
 
