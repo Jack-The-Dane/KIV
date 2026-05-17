@@ -8,7 +8,7 @@ from sklearn.model_selection import train_test_split, KFold, ParameterGrid
 from sklearn.metrics import classification_report, accuracy_score, precision_recall_fscore_support
 from scipy.signal import butter, filtfilt
 
-from cnn_improved import run_config, grid_search, DEFAULT_PARAMS
+from cnn_improved import run_config, grid_search, DEFAULT_PARAMS, hold_out_validation, export, kfold_cv
 
 # -----------------------------
 # CONFIG
@@ -24,26 +24,6 @@ DATA2 = "RockData.csv"
 # -----------------------------
 # MODEL & COMPONENTS
 # -----------------------------
-class CNN_LSTM(nn.Module):
-    def __init__(self, hidden_size=64, kernel_size=5):
-        super(CNN_LSTM, self).__init__()
-        self.cnn = nn.Sequential(
-            nn.Conv1d(1, 16, kernel_size=kernel_size, stride=1, padding=kernel_size//2),
-            nn.ReLU(),
-            nn.MaxPool1d(2),
-            nn.Conv1d(16, 32, kernel_size=kernel_size, padding=kernel_size//2),
-            nn.ReLU(),
-            nn.MaxPool1d(2)
-        )
-        self.lstm = nn.LSTM(input_size=32, hidden_size=hidden_size, num_layers=1, batch_first=True)
-        self.fc = nn.Linear(hidden_size, 2)
-
-    def forward(self, x):
-        x = self.cnn(x)
-        x = x.permute(0, 2, 1)
-        lstm_out, _ = self.lstm(x)
-        out = self.fc(lstm_out[:, -1, :])
-        return out
 
 class GestureDataset(Dataset):
     def __init__(self, X, y, is_train=False):
@@ -56,45 +36,6 @@ class GestureDataset(Dataset):
         if self.is_train:
             x = x + torch.randn(x.size()) * 0.01
         return x.unsqueeze(0), self.y[idx]
-
-# -----------------------------
-# TRAINING UTILITIES
-# -----------------------------
-def train_one_epoch(model, loader, criterion, optimizer):
-    model.train()
-    for X_batch, y_batch in loader:
-        X_batch, y_batch = X_batch.to(DEVICE), y_batch.to(DEVICE)
-        optimizer.zero_grad()
-        loss = criterion(model(X_batch), y_batch)
-        loss.backward()
-        optimizer.step()
-
-def evaluate_model(model, loader):
-    model.eval()
-    all_preds, all_labels = [], []
-    with torch.no_grad():
-        for X_batch, y_batch in loader:
-            outputs = model(X_batch.to(DEVICE))
-            all_preds.extend(torch.argmax(outputs, dim=1).cpu().numpy())
-            all_labels.extend(y_batch.numpy())
-    
-    acc = accuracy_score(all_labels, all_preds)
-    p, r, f1, _ = precision_recall_fscore_support(all_labels, all_preds, average='binary')
-    return {"accuracy": acc, "precision": p, "recall": r, "f1": f1}
-
-def train_model(X_train, y_train, X_val, y_val, params, epochs=20):
-    train_loader = DataLoader(GestureDataset(X_train, y_train, is_train=True), batch_size=BATCH_SIZE, shuffle=True)
-    val_loader = DataLoader(GestureDataset(X_val, y_val), batch_size=BATCH_SIZE)
-    
-    model = CNN_LSTM(hidden_size=params.get('hidden_size', 64), 
-                     kernel_size=params.get('kernel_size', 5)).to(DEVICE)
-    optimizer = torch.optim.Adam(model.parameters(), lr=params.get('lr', 1e-3))
-    criterion = nn.CrossEntropyLoss()
-    
-    for _ in range(epochs):
-        train_one_epoch(model, train_loader, criterion, optimizer)
-    
-    return evaluate_model(model, val_loader)
 
 # -----------------------------
 # DATA LOADING (Simplified from your script)
@@ -120,21 +61,13 @@ def main():
     # 1. HOLDOUT VALIDATION
     print("Running Holdout Validation...")
     ## Maybe do segmentation here as well?
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, stratify=y)
-    metrics = train_model(X_train, y_train, X_test, y_test, {'lr': 1e-3, "hidden_size": 64})
-    metrics['method'] = 'Holdout'
-    results.append(metrics)
+    metrics = hold_out_validation(X, y, params=DEFAULT_PARAMS, DataClass=GestureDataset)
+    export(metrics, "holdout_rps")
 
     # 2. CROSS-VALIDATION (5-Fold)
     print("Running 5-Fold Cross-Validation...")
-    kf = KFold(n_splits=5, shuffle=True)
-    cv_metrics = []
-    for train_idx, val_idx in kf.split(X):
-        m = train_model(X[train_idx], y[train_idx], X[val_idx], y[val_idx], {'lr': 1e-3, "hidden_size": 64})
-        cv_metrics.append(list(m.values()))
-    
-    avg_cv = np.mean(cv_metrics, axis=0)
-    results.append({'accuracy': avg_cv[0], 'precision': avg_cv[1], 'recall': avg_cv[2], 'f1': avg_cv[3], 'method': 'k-Fold CV'})
+    metrics = kfold_cv([DEFAULT_PARAMS], X, y, GestureDataset) # Probably do this on best parameters of EEG, once that is done
+    export(metrics, "kfold_rps")
 
     # 3. GRID SEARCH VALIDATION
     print("Running Grid Search...")

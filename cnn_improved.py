@@ -118,8 +118,9 @@ def create_dataset(signals, labels, overlap):
 # -----------------------------
 class EEGDataset(Dataset):
     def __init__(self, X, y, is_train = False):
-        self.X = torch.tensor(X, dtype=torch.float32)
-        self.y = torch.tensor(y, dtype=torch.long)
+        X_data, y_data = create_dataset(X, y, overlap=0.75 if is_train else 0.0)
+        self.X = torch.tensor(X_data, dtype=torch.float32)
+        self.y = torch.tensor(y_data, dtype=torch.long)
         self.is_train = is_train
 
     def __len__(self):
@@ -306,7 +307,7 @@ def train_epoch(model, train_loader, val_loader, criterion, optimizer):
     val_loss = validate(model, val_loader, criterion)
     return train_loss, val_loss
 
-def train_model(model, criterion, optimizer, scheduler, early_stop, train_loader, val_loader, epochs = 50):
+def train_model(model, criterion, optimizer, scheduler, early_stopping, train_loader, val_loader, epochs = 50):
     losses = {}
     losses["val_loss"] = []
     losses["train_loss"] = []
@@ -390,7 +391,7 @@ def run_config(p, signals, labels, X_test, y_test, epochs, num_conf):
     #     "config_num": num_conf
     # })
     # p.update(losses)
-    results = init_train_eval_model(p, train_set, val_set, test_set, f"conf{num_conf}")
+    results = init_train_eval_model(p, train_set, val_set, test_set, f"conf{num_conf}", 50)
     results.update({
         'method': 'grid-search',
         "config_num": num_conf
@@ -443,10 +444,9 @@ def export(results, name:str):
     df.to_csv(name + ".csv", index=False)
     df.to_parquet(name + ".parquet")
 
-def kfold_cv(params: list[dict], signals, labels):
+def kfold_cv(params: list[dict], signals, labels, DataClass = EEGDataset):
     X_train_val, X_test, y_train_val, y_test = train_test_split(signals, labels, test_size=0.1, random_state=32, stratify=labels)
-    X_test, y_test = create_dataset(X_test, y_test, 0.0)
-    test_set = EEGDataset(X_test, y_test)
+    test_set = DataClass(X_test, y_test)
     kfold = StratifiedKFold(5, shuffle=True)
     final_metrics = []
     i = 0
@@ -461,12 +461,9 @@ def kfold_cv(params: list[dict], signals, labels):
             y_train = y_train_val[train_idx]
             X_val = X_train_val[val_idx]
             y_val = y_train_val[val_idx]
-
-            X_train, y_train = create_dataset(X_train, y_train, 0.75)
-            X_val, y_val = create_dataset(X_val, y_val, 0.0)
             
-            train_set = EEGDataset(X_train, y_train)
-            val_set = EEGDataset(X_val, y_val)
+            train_set = DataClass(X_train, y_train, is_train=True)
+            val_set = DataClass(X_val, y_val)
             
             res = init_train_eval_model(p, train_set, val_set, test_set, f"kfold_{j}_{i}", 50)
             temp_metrics[f"fold{i}_losses"] = res["losses"]
@@ -493,6 +490,23 @@ def kfold_cv(params: list[dict], signals, labels):
         i = 0
         j += 1
     return final_metrics
+
+def hold_out_validation(signals, labels, params = DEFAULT_PARAMS, DataClass = EEGDataset):
+    print("Train/Test split...")
+    X_train, X_test_val, y_train, y_test_val = train_test_split(
+        signals, labels, test_size=0.2, random_state=42, stratify=labels
+    )
+   
+    X_test, X_val, y_test, y_val = train_test_split(
+        X_test_val, y_test_val, test_size=0.5, random_state=42, stratify=y_test_val
+    )
+
+    train_set = DataClass(X_train, y_train, is_train=True)
+    val_set = DataClass(X_val, y_val)
+    test_set = DataClass(X_test, y_test)
+
+    metrics = init_train_eval_model(params, train_set, val_set, test_set, "Holdout", 50)
+    metrics["method"] = "holdout"
 # -----------------------------
 # MAIN PIPELINE
 # -----------------------------
@@ -510,26 +524,8 @@ def main():
     labels = np.array(labels)
 
     # Create split first, and then segment, to avoid data leakage
-    
-    print("Train/Test split...")
-    X_train, X_test_val, y_train, y_test_val = train_test_split(
-        signals, labels, test_size=0.2, random_state=42, stratify=labels
-    )
-   
-    X_test, X_val, y_test, y_val = train_test_split(
-        X_test_val, y_test_val, test_size=0.5, random_state=42, stratify=y_test_val
-    )
 
-    X_train, y_train = create_dataset(X_train, y_train, 0.75)
-    X_val, y_val = create_dataset(X_val, y_val, 0.0)
-    X_test, y_test = create_dataset(X_test, y_test, 0.0)
-
-    train_set = EEGDataset(X_train, y_train)
-    val_set = EEGDataset(X_val, y_val)
-    test_set = EEGDataset(X_test, y_test)
-
-
-    holdout = init_train_eval_model(DEFAULT_PARAMS, train_set, val_set, test_set, "Holdout", 50)
+    holdout = hold_out_validation(signals, labels)
     export(holdout, "holdout")
     # print("Segmenting...")
     # X_train, y_train = create_dataset(X_train, y_train)
