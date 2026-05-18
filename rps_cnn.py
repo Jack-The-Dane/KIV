@@ -43,7 +43,8 @@ class GestureDataset(Dataset):
 def load_and_preprocess():
     df0 = pd.read_csv(os.path.join(DATA_DIR, DATA1), header=None)
     df1 = pd.read_csv(os.path.join(DATA_DIR, DATA2), header=None)
-    df0['label'], df1['label'] = 0, 1
+    df0['label'] = 0
+    df1['label'] = 1
     df = pd.concat([df0, df1], axis=0)
     X = df.drop(columns=['label']).to_numpy()
     y = df['label'].to_numpy()
@@ -59,37 +60,37 @@ def main():
     results = []
 
     # 1. HOLDOUT VALIDATION
-    print("Running Holdout Validation...")
-    ## Maybe do segmentation here as well?
-    metrics = hold_out_validation(X, y, params=DEFAULT_PARAMS, DataClass=GestureDataset)
-    export(metrics, "holdout_rps")
-
-    # 2. CROSS-VALIDATION (5-Fold)
-    print("Running 5-Fold Cross-Validation...")
-    metrics = kfold_cv([DEFAULT_PARAMS], X, y, GestureDataset) # Probably do this on best parameters of EEG, once that is done
-    export(metrics, "kfold_rps")
-
-    # 3. GRID SEARCH VALIDATION
-    print("Running Grid Search...")
-    param_grid = {
-        'lr': [1e-2, 1e-3, 1e-4],
-        'hidden_size': [32, 64, 128],
-        "kernel_size": [5, 11, 15]
-    }
-    grid = ParameterGrid(param_grid)
-    best_f1 = -1
-    best_params = {}
+    # print("Running Holdout Validation...")
+    top_params = pd.read_csv("top_model.csv")
+    # params = top_params.to_dict("records")[0]
+    # print(params)
+    # metrics = hold_out_validation(X, y, params=params, DataClass=GestureDataset, epochs=50)
+    # export([metrics], "holdout_rps")
     
-    for p in grid:
-        m = train_model(X_train, y_train, X_test, y_test, p, epochs=20)
-        if m['f1'] > best_f1:
-            best_f1 = m['f1']
-            best_params = p
-            best_metrics = m
+    # 2. CROSS-VALIDATION (5-Fold)
+    # print("Running 5-Fold Cross-Validation...")
+    # params_df = pd.read_csv("top10_models.csv")
+    # params = params_df.to_dict("records")
+    # metrics = kfold_cv(params, X, y, GestureDataset, epochs=50) # Probably do this on best parameters of EEG, once that is done
+    # export(metrics, "kfold_rps")
+    
+    # 3. GRID SEARCH VALIDATION
 
-    best_metrics['method'] = f"Grid Search (Best: {best_params})"
-    results.append(best_metrics)
-
+    print("Running Grid Search...")
+    # param_grid = {
+    #     'lr': [1e-2, 1e-3, 1e-4],
+    #     'hidden_size': [32, 64, 128],
+    #     "kernel_size": [5, 11, 15]
+    # }
+    test_params = pd.read_csv("test_params.csv")
+    params = {key: pd.unique(test_params[key]).tolist() for key in test_params.columns}
+    params["batch_size"] = [32, 64, 128]
+    print(params)
+    #return
+    grid_res = grid_search(X, y, params, 50, GestureDataset)
+    export(grid_res, "batch_test")
+    #print(grid_res)
+    return
     # SAVE RESULTS
     results_df = pd.DataFrame(results)
     results_df.to_csv("validation_results.csv", index=False)

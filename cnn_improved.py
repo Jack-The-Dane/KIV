@@ -344,9 +344,9 @@ def train_model(model, criterion, optimizer, scheduler, early_stopping, train_lo
 def init_train_eval_model(model_params:dict, train_set:EEGDataset, val_set:EEGDataset, test_set:EEGDataset, model_name:str, epochs):
     results = model_params
 
-    test_loader = DataLoader(test_set, batch_size=BATCH_SIZE, num_workers=8)
-    train_loader = DataLoader(train_set, batch_size=BATCH_SIZE, num_workers=8, shuffle=True) # Shuffle training data each epoch
-    val_loader = DataLoader(val_set, batch_size=BATCH_SIZE, num_workers=8)
+    test_loader = DataLoader(test_set, batch_size=model_params.get("batch_size", 32), num_workers=0)
+    train_loader = DataLoader(train_set, batch_size=model_params.get("batch_size", 32), num_workers=0, shuffle=True) # Shuffle training data each epoch
+    val_loader = DataLoader(val_set, batch_size=model_params.get("batch_size", 32), num_workers=0)
     
     model = CNN_LSTM(model_params).to(DEVICE)
     
@@ -354,7 +354,7 @@ def init_train_eval_model(model_params:dict, train_set:EEGDataset, val_set:EEGDa
     criterion = nn.CrossEntropyLoss(weight=weights).to(DEVICE)
     optimizer = torch.optim.Adam(model.parameters(), lr=model_params.get("learning_rate", 1e-3), weight_decay=model_params.get("weight_decay", 1e-4))
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', patience=3)
-    early_stopping = EarlyStopping(patience=5, path=f'models/{model_name}.pt')
+    early_stopping = EarlyStopping(patience=9, path=f'models/{model_name}.pt')
     print(f"Model {model_name} training started", flush=True)
     losses = train_model(model, criterion, optimizer, scheduler, early_stopping, train_loader, val_loader, epochs)
     # print("\n--- Final Evaluation (Best Model) ---")
@@ -367,7 +367,7 @@ def init_train_eval_model(model_params:dict, train_set:EEGDataset, val_set:EEGDa
    
     return results
 
-def run_config(p, signals, labels, X_test, y_test, epochs, num_conf):
+def run_config(p, signals, labels, X_test, y_test, epochs, num_conf, DataClass = EEGDataset):
     print(f"Configuration {num_conf} started", flush=True)
 
 
@@ -377,9 +377,9 @@ def run_config(p, signals, labels, X_test, y_test, epochs, num_conf):
 
     X_train, X_val, y_train, y_val = train_test_split(signals, labels, test_size=0.2, stratify=labels, random_state=42)
     
-    train_set = EEGDataset(X_train, y_train, is_train=True)
-    val_set = EEGDataset(X_val, y_val)
-    test_set = EEGDataset(X_test, y_test)
+    train_set = DataClass(X_train, y_train, is_train=True)
+    val_set = DataClass(X_val, y_val)
+    test_set = DataClass(X_test, y_test)
 
     results = init_train_eval_model(p, train_set, val_set, test_set, f"conf{num_conf}", epochs)
     results.update({
@@ -399,7 +399,7 @@ def write_results_to_csv(results, filename):
         combined = pd.concat([file_df, df], axis=0, ignore_index=True)
         combined.to_csv(filename + ".csv", index=False)
 
-def grid_search(signals, labels, parameters:dict, epochs:int=50):
+def grid_search(signals, labels, parameters:dict, epochs:int=50, DataClass = EEGDataset):
     keys = parameters.keys()
     values = parameters.values()
 
@@ -412,12 +412,12 @@ def grid_search(signals, labels, parameters:dict, epochs:int=50):
     signals, X_test, labels, y_test = train_test_split(signals, labels, test_size=0.1, random_state=42, stratify=labels)
 
     results = []
-    print("Starting grid search...")
+    print(f"Starting grid search across {len(parameter_grid)} configurations")
 
     ctx = mp.get_context('spawn')
-    with ProcessPoolExecutor(max_workers=11, mp_context=ctx) as executor:
+    with ProcessPoolExecutor(max_workers=7, mp_context=ctx) as executor:
         futures = [
-            executor.submit(run_config, p, signals, labels, X_test, y_test, epochs, i)
+            executor.submit(run_config, p, signals, labels, X_test, y_test, epochs, i, DataClass)
             for i, p in enumerate(parameter_grid)
         ]
         print(f"Submitted all {len(parameter_grid)} configs", flush=True)
@@ -483,7 +483,7 @@ def kfold_cv(params: list[dict], signals, labels, DataClass = EEGDataset, epochs
         j += 1
     return final_metrics
 
-def hold_out_validation(signals, labels, params = DEFAULT_PARAMS, DataClass = EEGDataset):
+def hold_out_validation(signals, labels, params = DEFAULT_PARAMS, DataClass = EEGDataset, epochs = 50):
     print("Train/Test split...")
     X_train, X_test_val, y_train, y_test_val = train_test_split(
         signals, labels, test_size=0.2, random_state=42, stratify=labels
@@ -497,7 +497,7 @@ def hold_out_validation(signals, labels, params = DEFAULT_PARAMS, DataClass = EE
     val_set = DataClass(X_val, y_val)
     test_set = DataClass(X_test, y_test)
 
-    metrics = init_train_eval_model(params, train_set, val_set, test_set, "Holdout", 50)
+    metrics = init_train_eval_model(params, train_set, val_set, test_set, "Holdout", epochs)
     metrics["method"] = "holdout"
     return metrics
 # -----------------------------

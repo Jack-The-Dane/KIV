@@ -1,0 +1,2 @@
+kernel_size1,kernel_size2,cnn_internal,cnn_out,hidden_size,num_layers,dropout,learning_rate,weight_decay
+11,11,128,128,256,3,0.6,0.001,0.001
