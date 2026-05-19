@@ -85,7 +85,7 @@ def main():
     test_params = pd.read_csv("test_params.csv")
     params = {key: pd.unique(test_params[key]).tolist() for key in test_params.columns}
     params["batch_size"] = [32, 64, 128]
-    print(params)
+    #print(params)
     #return
     grid_res = grid_search(X, y, params, 50, GestureDataset)
     export(grid_res, "batch_test")

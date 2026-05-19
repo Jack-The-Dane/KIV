@@ -415,7 +415,7 @@ def grid_search(signals, labels, parameters:dict, epochs:int=50, DataClass = EEG
     print(f"Starting grid search across {len(parameter_grid)} configurations")
 
     ctx = mp.get_context('spawn')
-    with ProcessPoolExecutor(max_workers=7, mp_context=ctx) as executor:
+    with ProcessPoolExecutor(max_workers=2, mp_context=ctx) as executor:
         futures = [
             executor.submit(run_config, p, signals, labels, X_test, y_test, epochs, i, DataClass)
             for i, p in enumerate(parameter_grid)
