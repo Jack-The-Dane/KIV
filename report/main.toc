@@ -1,0 +1,8 @@
+\babel@toc {english}{}\relax 
+\contentsline {section}{\numberline {1}Introduction}{1}{section.1}%
+\contentsline {section}{\numberline {2}Related Works}{1}{section.2}%
+\contentsline {section}{\numberline {3}Methodology}{1}{section.3}%
+\contentsline {subsection}{\numberline {3.1}Model architecture}{1}{subsection.3.1}%
+\contentsline {section}{\numberline {4}Results}{1}{section.4}%
+\contentsline {section}{\numberline {5}Discussion and Conclusions}{1}{section.5}%
+\contentsline {section}{\numberline {6}Reflection}{2}{section.6}%
