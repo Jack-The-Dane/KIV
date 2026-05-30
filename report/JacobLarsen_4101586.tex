@@ -28,7 +28,11 @@
 \usepackage{amsmath} %gives aligned environment for equations
 \usepackage{amssymb} %usefull for math equations
 \usepackage{siunitx} %SI units
+\usepackage[style=ieee]{biblatex}
+\usepackage{minted}
+\usepackage{cleveref}
 
+\addbibresource{references.bib}
 
 \begin{document}
 \subfile{sections/frontpage.tex}
@@ -60,8 +64,8 @@ The resulting model was compared to a simpler machine learning model, both on th
 
 % References
 \newpage
-\bibliographystyle{apalike}  % Choose from: plain, apalike, ieeetr, etc.
-\bibliography{references}  % Your BibTeX file named references.bib
+%\bibliographystyle{apalike}  % Choose from: plain, apalike, ieeetr, etc.
+\printbibliography
 
 
 \end{document}

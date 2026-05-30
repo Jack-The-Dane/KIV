@@ -1,0 +1,125 @@
+% $ biblatex auxiliary file $
+% $ biblatex bbl format version 3.3 $
+% Do not modify the above lines!
+%
+% This is an auxiliary file used by the 'biblatex' package.
+% This file may safely be deleted. It will be recreated by
+% biber as required.
+%
+\begingroup
+\makeatletter
+\@ifundefined{ver@biblatex.sty}
+  {\@latex@error
+     {Missing 'biblatex' package}
+     {The bibliography requires the 'biblatex' package.}
+      \aftergroup\endinput}
+  {}
+\endgroup
+
+
+\refsection{0}
+  \datalist[entry]{none/global//global/global/global}
+    \entry{bonnData}{article}{}{}
+      \name{author}{14}{}{%
+        {{hash=9044eccb49478b5747d2d4f6b554a171}{%
+           family={Chen},
+           familyi={C\bibinitperiod},
+           given={Wenna},
+           giveni={W\bibinitperiod}}}%
+        {{hash=eb6385bfb28a96d6500ee013e6853520}{%
+           family={W},
+           familyi={W\bibinitperiod},
+           given={Chen},
+           giveni={C\bibinitperiod}}}%
+        {{hash=920e717db4cf5af11f117c7c4470fb33}{%
+           family={Wang},
+           familyi={W\bibinitperiod},
+           given={Yixing},
+           giveni={Y\bibinitperiod}}}%
+        {{hash=20dff355ebe02639265f6d7349721cb0}{%
+           family={Y},
+           familyi={Y\bibinitperiod},
+           given={Wang},
+           giveni={W\bibinitperiod}}}%
+        {{hash=ae2e1bd31e41ea6caae1366fc0bff396}{%
+           family={Ren},
+           familyi={R\bibinitperiod},
+           given={Yuhao},
+           giveni={Y\bibinitperiod}}}%
+        {{hash=51ef0b45e9215840690831c73e798fd5}{%
+           family={Y},
+           familyi={Y\bibinitperiod},
+           given={Ren},
+           giveni={R\bibinitperiod}}}%
+        {{hash=2161aaa560ce016f1b5e0b00393a3f92}{%
+           family={Jiang},
+           familyi={J\bibinitperiod},
+           given={Hongwei},
+           giveni={H\bibinitperiod}}}%
+        {{hash=75c23cf8a939f1ab5782c54d6e65d3f5}{%
+           family={H},
+           familyi={H\bibinitperiod},
+           given={Jiang},
+           giveni={J\bibinitperiod}}}%
+        {{hash=44f47dae406fac0fccd079f7a0898fb2}{%
+           family={Du},
+           familyi={D\bibinitperiod},
+           given={Ganqin},
+           giveni={G\bibinitperiod}}}%
+        {{hash=6134f8fd357fca21b4955c51e21938d7}{%
+           family={G},
+           familyi={G\bibinitperiod},
+           given={Du},
+           giveni={D\bibinitperiod}}}%
+        {{hash=407c28379ce2703e134b12894824f389}{%
+           family={Zhang},
+           familyi={Z\bibinitperiod},
+           given={Jincan},
+           giveni={J\bibinitperiod}}}%
+        {{hash=49c5905d2fd44dc103b607f25ad362e1}{%
+           family={J},
+           familyi={J\bibinitperiod},
+           given={Zhang},
+           giveni={Z\bibinitperiod}}}%
+        {{hash=f88d1024085ed8ad15579d78f55510f9}{%
+           family={Li},
+           familyi={L\bibinitperiod},
+           given={Jinghua},
+           giveni={J\bibinitperiod}}}%
+        {{hash=3699ba7c18f8cc8f2fcf555b2e19faab}{%
+           family={J},
+           familyi={J\bibinitperiod},
+           given={Li},
+           giveni={L\bibinitperiod}}}%
+      }
+      \list{location}{2}{%
+        {College of Information Engineering, Henan University of Science}%
+        {Technology,}%
+      }
+      \strng{namehash}{b8c631e11487c30bc2a3e33605975790}
+      \strng{fullhash}{1e7bdd6df10ae9b89ab13d2df85e9a6d}
+      \strng{fullhashraw}{1e7bdd6df10ae9b89ab13d2df85e9a6d}
+      \strng{bibnamehash}{b8c631e11487c30bc2a3e33605975790}
+      \strng{authorbibnamehash}{b8c631e11487c30bc2a3e33605975790}
+      \strng{authornamehash}{b8c631e11487c30bc2a3e33605975790}
+      \strng{authorfullhash}{1e7bdd6df10ae9b89ab13d2df85e9a6d}
+      \strng{authorfullhashraw}{1e7bdd6df10ae9b89ab13d2df85e9a6d}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{BMC medical informatics and decision making}
+      \field{number}{1}
+      \field{title}{An automated detection of epileptic seizures EEG using CNN classifier based on feature fusion with high accuracy.}
+      \field{volume}{23}
+      \field{year}{2023}
+      \field{pages}{96}
+      \range{pages}{1}
+      \verb{doi}
+      \verb 10.1186/s12911-023-02180-w
+      \endverb
+    \endentry
+  \enddatalist
+\endrefsection
+\endinput
+
