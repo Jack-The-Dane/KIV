@@ -205,6 +205,7 @@ class CNN_LSTM(nn.Module):
 
         # take last timestep
         out = lstm_out[:, -1, :]
+        #out = torch.mean(lstm_out, dim=1)
 
         out = self.fc(out)
         return out
@@ -517,7 +518,17 @@ def main():
     labels = np.array(labels)
 
     # Create split first, and then segment, to avoid data leakage
-
+    # top_model = {
+    #     "kernel_size1": 11,
+    #     "kernel_size2": 11,
+    #     "cnn_internal": 128,
+    #     "cnn_out": 128,
+    #     "hidden_size": 256,
+    #     "num_layers": 3,
+    #     "dropout": 0.6,
+    #     "learning_rate": 1e-3,
+    #     "weight_decay": 1e-3
+    # }
     # holdout_metrics = hold_out_validation(signals, labels)
     # export([holdout_metrics], "holdout")
 
@@ -543,10 +554,10 @@ def main():
     df2["run"] = 2
     df = pd.concat([df1, df2], axis=0, ignore_index=True)
     sorted_df = df.sort_values("f1", ascending=False, axis=0)
-    top_params = sorted_df[PARAMETER_MAMES].head(10).to_dict("records")
+    top_params = sorted_df[PARAMETER_MAMES].head(3).to_dict("records")
     #print(top_params)
     kfold_metrics = kfold_cv(top_params, signals, labels, EEGDataset, 50)
-    export(kfold_metrics, "kfold-cv")
+    export(kfold_metrics, "kfold-cv_eeg_lstm_last")
 
 
 
