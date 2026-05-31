@@ -4,21 +4,21 @@ The grid search algorithm searched through $1152$ different combinations of hype
     \centering
     \begin{tabular}{c|c|c|c|c|c}
         Parameter    & Model 1 & Model 2 & Model 3 & Model 4 & Model 5 \\
-        kernel\_size1 &         &         &         &         &         \\
-        kernel\_size2 &         &         &         &         &         \\
-        cnn\_internal &         &         &         &         &         \\
-        cnn\_out      &         &         &         &         &         \\
-        hidden\_size  &         &         &         &         &         \\
-        num\_layers   &         &         &         &         &         \\
-        dropout      &         &         &         &         &         \\
-        learning\_rate&         &         &         &         &         \\
-        weight\_decay &         &         &         &         &         \\
-        F1-score     &         &         &         &         &         
+        kernel\_size1 & 13     & 5       & 11      & 11      & 9       \\
+        kernel\_size2 & 5      & 9       & 7       & 7       & 5       \\
+        cnn\_internal & 32     & 64      & 128     & 64      & 64      \\
+        cnn\_out      & 128    & 64      & 256     & 128     & 128     \\
+        hidden\_size  & 128    & 64      & 128     & 256     & 64      \\
+        num\_layers   & 2      & 2       & 3       & 1       & 2       \\
+        dropout       & 0.5    & 0.5     & 0.5     & 0.5     & 0.2     \\
+        learning\_rate& 0.001  & 0.001   & 0.001   & 0.001   & 0.001   \\
+        weight\_decay & 0.0001 & 0.0001  & 0.0001  & 0.0001  & 0.0001  \\
+        F1-score      & 0.9913 & 0.9912  & 0.9912  & 0.9891  & 0.9891 
     \end{tabular}
     \caption{Table showing the 5 best models, determined by F1-score, found by the grid search algorithm. All models were validated using hold-out validation with 10\% of data being used for the final evaluation of each model, 20\% being used for validation during training, and 70\% being used for training.}
     \label{tab:gridsearch}
 \end{table}
-The five models mentioned in \cref{tab:gridsearch} were then validated using 5-fold cross validation, eliminating any possible advantages that might result from a "lucky" train/test split in hold-out validation. After cross validation model {\color{red}x} turned out to be the best model, with performance metrics as shown in \cref{tab:bestmodel}, averaged out over all 5 folds.
+The five models mentioned in \cref{tab:gridsearch} were then validated using 5-fold cross validation, eliminating any possible advantages that might result from a "lucky" train/test split in the hold-out validation. After cross validation model {\color{red}x} proved to be the best model, with performance metrics as shown in \cref{tab:bestmodel}, averaged out over all 5 folds.
 
 \begin{table}
     \begin{tabular}{c}
