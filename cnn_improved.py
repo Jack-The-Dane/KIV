@@ -554,10 +554,13 @@ def main():
     df2["run"] = 2
     df = pd.concat([df1, df2], axis=0, ignore_index=True)
     sorted_df = df.sort_values("f1", ascending=False, axis=0)
-    top_params = sorted_df[PARAMETER_MAMES].head(3).to_dict("records")
+    sorted_df.head(5).to_csv("top5_models_eeg.csv", index=False)
+    top_df = sorted_df[PARAMETER_MAMES].head(5)
+    top_params = top_df.to_dict("records")
+    #top_df.to_csv("top5_models_eeg.csv", index=False)
     #print(top_params)
     kfold_metrics = kfold_cv(top_params, signals, labels, EEGDataset, 50)
-    export(kfold_metrics, "kfold-cv_eeg_lstm_last")
+    export(kfold_metrics, "kfold-top5_eeg")
 
 
 
