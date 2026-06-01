@@ -8,7 +8,7 @@ from sklearn.model_selection import train_test_split, KFold, ParameterGrid
 from sklearn.metrics import classification_report, accuracy_score, precision_recall_fscore_support
 from scipy.signal import butter, filtfilt
 
-from cnn_improved import run_config, grid_search, DEFAULT_PARAMS, hold_out_validation, export, kfold_cv
+from cnn_improved import run_config, grid_search, DEFAULT_PARAMS, hold_out_validation, export, kfold_cv, PARAMETER_MAMES
 
 # -----------------------------
 # CONFIG
@@ -61,34 +61,35 @@ def main():
 
     # 1. HOLDOUT VALIDATION
     # print("Running Holdout Validation...")
-    top_params = pd.read_csv("top_model.csv")
+    # top_params = pd.read_csv("top_model.csv")
     # params = top_params.to_dict("records")[0]
     # print(params)
     # metrics = hold_out_validation(X, y, params=params, DataClass=GestureDataset, epochs=50)
     # export([metrics], "holdout_rps")
     
     # 2. CROSS-VALIDATION (5-Fold)
-    # print("Running 5-Fold Cross-Validation...")
-    # params_df = pd.read_csv("top10_models.csv")
-    # params = params_df.to_dict("records")
-    # metrics = kfold_cv(params, X, y, GestureDataset, epochs=50) # Probably do this on best parameters of EEG, once that is done
-    # export(metrics, "kfold_rps")
+    print("Running 5-Fold Cross-Validation...")
+    params_df = pd.read_parquet("results/kfold-top5_eeg.parquet")
+    params_df = params_df[PARAMETER_MAMES]
+    params = params_df.to_dict("records")
+    metrics = kfold_cv(params, X, y, GestureDataset, epochs=50) # Probably do this on best parameters of EEG, once that is done
+    export(metrics, "kfold_top5_models_rps")
     
     # 3. GRID SEARCH VALIDATION
 
-    print("Running Grid Search...")
+    #print("Running Grid Search...")
     # param_grid = {
     #     'lr': [1e-2, 1e-3, 1e-4],
     #     'hidden_size': [32, 64, 128],
     #     "kernel_size": [5, 11, 15]
     # }
-    test_params = pd.read_csv("test_params.csv")
-    params = {key: pd.unique(test_params[key]).tolist() for key in test_params.columns}
-    params["batch_size"] = [32, 64, 128]
+    # test_params = pd.read_csv("test_params.csv")
+    # params = {key: pd.unique(test_params[key]).tolist() for key in test_params.columns}
+    # params["batch_size"] = [32, 64, 128]
     #print(params)
     #return
-    grid_res = grid_search(X, y, params, 50, GestureDataset)
-    export(grid_res, "batch_test")
+    # grid_res = grid_search(X, y, params, 50, GestureDataset)
+    # export(grid_res, "batch_test")
     #print(grid_res)
     return
     # SAVE RESULTS
