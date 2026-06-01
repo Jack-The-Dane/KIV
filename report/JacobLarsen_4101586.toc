@@ -8,5 +8,5 @@
 \contentsline {subsection}{\numberline {3.4}Data segmentation}{2}{subsection.3.4}%
 \contentsline {subsection}{\numberline {3.5}Model training}{3}{subsection.3.5}%
 \contentsline {section}{\numberline {4}Results}{3}{section.4}%
-\contentsline {section}{\numberline {5}Discussion and Conclusions}{4}{section.5}%
-\contentsline {section}{\numberline {6}Reflection}{4}{section.6}%
+\contentsline {section}{\numberline {5}Discussion and Conclusions}{5}{section.5}%
+\contentsline {section}{\numberline {6}Reflection}{5}{section.6}%

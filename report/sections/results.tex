@@ -18,15 +18,27 @@ The grid search algorithm searched through $1152$ different combinations of hype
     \caption{Table showing the 5 best models, determined by F1-score, found by the grid search algorithm. All models were validated using hold-out validation with 10\% of data being used for the final evaluation of each model, 20\% being used for validation during training, and 70\% being used for training.}
     \label{tab:gridsearch}
 \end{table}
-The five models mentioned in \cref{tab:gridsearch} were then validated using 5-fold cross validation, eliminating any possible advantages that might result from a "lucky" train/test split in the hold-out validation. After cross validation model {\color{red}x} proved to be the best model, with performance metrics as shown in \cref{tab:bestmodel}, averaged out over all 5 folds.
+The five models mentioned in \cref{tab:gridsearch} were then validated using 5-fold cross validation, eliminating any possible advantages that might result from a "lucky" train/test split in the hold-out validation. After cross validation, model 2 proved to be the best model with performance metrics as shown in \cref{tab:bestmodel}, averaged out over all 5 folds.
 
 \begin{table}
-    \begin{tabular}{c}
-        
+    \centering
+    \begin{tabular}{c c c c}
+        F1-score & Precision & Recall & Accuracy \\
+        0.9895   & 0.9652    & 0.9478 & 0.9570
     \end{tabular}
-    \caption{}
+    \caption{Performance metrics of model 2 from \cref{tab:gridsearch}. The metrics are calculated after every fold in a 5-fold cross validation, and then the averages over all folds are shown here.}
     \label{tab:bestmodel}
 \end{table}
+
+\begin{figure}
+    \centering
+    \begin{subfigure}{0.45\textwidth}
+        \includegraphics[width=\linewidth]{figures/EEG_confusion.png}
+    \end{subfigure}
+    \begin{subfigure}{0.45\textwidth}
+        \includegraphics[width=\linewidth]{figures/eeg_loss.png}
+    \end{subfigure}
+\end{figure}
 
 Summarize model performance, loss, accuracy (vs epoch) plots, confusion matrix, and any key visualizations. Make sure you compare your results with at least one of the SOTA algorithm. You are allowed to compare your results with your other group member results (provided you are implementing different algorithms/models). Please make sure that the plots should have x and y labels along with their units (if any).
 
