@@ -1,0 +1,16 @@
+Best EEG model:
+avg_f1      avg_precision   avg_recall    avg_accuracy
+0.98954     0.992166        0.986957      0.993043    
+
+Best EEG model confusion matrix:
+[[0.66405797 0.0026087 ]
+ [0.00434783 0.32898551]]
+
+
+Best RPS model:
+avg_f1      avg_precision  avg_recall    avg_accuracy
+0.95624     0.96515        0.947766      0.956997     
+
+Best rps model confusion matrix:
+[[0.48634812 0.01706485]
+ [0.02593857 0.47064846]]

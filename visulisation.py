@@ -1,7 +1,12 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.ticker import MaxNLocator
 import os
+from cnn_improved import PARAMETER_MAMES
+from sklearn.metrics import ConfusionMatrixDisplay
+
+import seaborn as sn
 
 # PARAMETERS = ["kernel_size1",
 #             "kernel_size2",
@@ -74,5 +79,89 @@ axs[0].legend(loc="upper right")
 axs[1].legend(loc="upper right")
 axs[2].legend(loc="upper right")
 fig.suptitle("One EEG measurement from subsets A, B and E")
-plt.savefig(fname="report/figures/EEG_data_vis.png")
-plt.show()
+#plt.savefig(fname="report/figures/EEG_data_vis.png")
+#plt.show()
+plt.cla()
+plt.clf()
+
+def plot_loss(val_loss, train_loss, filename = None):
+    fig, ax = plt.subplots(figsize=(10,10))
+    epochs = np.arange(1, len(val_loss)+1, 1)
+    min_loss_epoch = float(np.argmin(val_loss)+1)
+    min_val_loss = min(val_loss)
+    ax.plot(epochs, val_loss, label="Validation loss")
+    ax.plot(epochs, train_loss, label="Training loss")
+    ax.axhline(min_val_loss, color="r", linestyle="dashed", linewidth=0.5)
+    ax.axvline(min_loss_epoch, color="r", linestyle="dashed", linewidth=0.5)
+    # --- Add Custom Ticks Here ---
+    # Get current ticks, append the new value, and set them back
+    #ax = plt.gca()
+    ax.xaxis.set_major_locator(MaxNLocator(integer=True))
+    # For the X-axis (Epochs)
+    current_xticks = list(ax.get_xticks())
+    # Optional: remove auto-ticks that are too close to your custom tick to avoid overlapping text
+    current_xticks = [x for x in current_xticks if abs(x - min_loss_epoch) > 0.5] 
+    ax.set_xticks(current_xticks + [min_loss_epoch])
+
+    # For the Y-axis (Loss)
+    current_yticks = list(ax.get_yticks())
+    # Optional: remove auto-ticks that are too close to your custom tick to avoid overlapping text
+    current_yticks = [y for y in current_yticks if abs(y - min_val_loss) > 0.01]
+    ax.set_yticks(current_yticks + [min_val_loss])
+    # ------------------------------
+    plt.xlim(left=1, right=max(epochs))
+    plt.xlabel("Epoch")
+    plt.ylabel("Loss")
+    plt.legend()
+    plt.title("Training and validation loss of the first fold in 5-fold cross validation")
+    if filename != None:
+        plt.savefig(f"report/figures/{filename}.png")
+    plt.show()
+    plt.clf()
+
+eeg_top5 = pd.read_parquet("results/kfold-top5_eeg.parquet")
+rps_top5 = pd.read_parquet("results/kfold_top5_models_rps.parquet")
+
+avg_cols = ["avg_f1","avg_precision","avg_recall","avg_accuracy","avg_c11","avg_c12","avg_c21","avg_c22"]
+
+print(rps_top5[PARAMETER_MAMES+avg_cols])
+eeg_best = eeg_top5.sort_values("avg_f1", axis=0, ascending=False).head(1)
+print("Best EEG model:")
+print(eeg_best[PARAMETER_MAMES + avg_cols])
+print("Best EEG model confusion matrix:")
+conf_EEG = np.array([[eeg_best["avg_c11"].to_list()[0], eeg_best["avg_c12"].to_list()[0]],
+                     [eeg_best["avg_c21"].to_list()[0], eeg_best["avg_c22"].to_list()[0]]])
+print(conf_EEG)
+
+eeg_val_loss1 = eeg_best["fold0_val_loss"].to_list()[0]
+eeg_train_loss1 = eeg_best["fold0_train_loss"].to_list()[0]
+#print("Validation loss:", eeg_val_loss1)
+#plot_loss(eeg_val_loss1, eeg_train_loss1, "eeg_loss")
+
+rps_best = rps_top5.sort_values("avg_f1", axis=0, ascending=False).head(1)
+print("Best RPS model:")
+print(rps_best[PARAMETER_MAMES+avg_cols])
+print("Best rps model confusion matrix:")
+conf_rps = np.array([[rps_best["avg_c11"].to_list()[0], rps_best["avg_c12"].to_list()[0]],
+                     [rps_best["avg_c21"].to_list()[0], rps_best["avg_c22"].to_list()[0]]])
+print(conf_rps)
+rps_val_loss = rps_best["fold0_val_loss"].to_list()[0]
+rps_train_loss = rps_best["fold0_train_loss"].to_list()[0]
+#plot_loss(rps_val_loss, rps_train_loss, "rps_loss")
+#fig, ax = plt.subplots(figsize=(5,5))
+# ConfusionMatrixDisplay(conf_EEG, display_labels=["Healthy", "Seizure"]).plot()
+# plt.title("Confusion matrix of healthy vs seizure classification")
+# plt.savefig("report/figures/EEG_confusion.png")
+# plt.show()
+# plt.clf()
+
+
+# ConfusionMatrixDisplay(conf_rps, display_labels=["Paper", "Rock"]).plot()
+# plt.title("Confusion matrix of paper vs rock gesture detection")
+# plt.savefig("report/figures/RPS_confusion.png")
+# plt.show()
+# plt.clf()
+
+v = [eeg_best[f"fold{i}_val_loss"] for i in range(5)]
+for t in v:
+    print(t[1].shape)
