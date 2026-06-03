@@ -1,45 +1,175 @@
 \section{Results}
-The grid search algorithm searched through $1152$ different combinations of hyper-parameters such as kernel sizes in the CNN and the hidden size in the LSTM. Determined by the F1-score the best 5 models had these parameters and F1-score:
-\begin{table}
-    \centering
-    \begin{tabular}{c|c|c|c|c|c}
-        Parameter    & Model 1 & Model 2 & Model 3 & Model 4 & Model 5 \\
-        kernel\_size1 & 13     & 5       & 11      & 11      & 9       \\
-        kernel\_size2 & 5      & 9       & 7       & 7       & 5       \\
-        cnn\_internal & 32     & 64      & 128     & 64      & 64      \\
-        cnn\_out      & 128    & 64      & 256     & 128     & 128     \\
-        hidden\_size  & 128    & 64      & 128     & 256     & 64      \\
-        num\_layers   & 2      & 2       & 3       & 1       & 2       \\
-        dropout       & 0.5    & 0.5     & 0.5     & 0.5     & 0.2     \\
-        learning\_rate& 0.001  & 0.001   & 0.001   & 0.001   & 0.001   \\
-        weight\_decay & 0.0001 & 0.0001  & 0.0001  & 0.0001  & 0.0001  \\
-        F1-score      & 0.9913 & 0.9912  & 0.9912  & 0.9891  & 0.9891 
+\subsection{Grid search}
+The grid search algorithm searched through $1152$ different combinations of hyper-parameters such as kernel sizes in the CNN and the hidden size in the LSTM. The tested parameters can be seen in \cref{tab:gridsearch}. During grid search, each model was validated using hold-out validation, with 10\% of data being used for final evaluation, 18\% for validation during training and 72\% for training. All train/test splits were seeded such that each model had the same data for all three scenarios. During grid search the early stopping mechanism was configured to stop the training after five epochs, if validation loss did not improve.
+\begin{table}[H]
+    \caption{Model hyper parameters that were searched using grid search. Not every combination was tested, but a subjectively selected subset. See \cref{fig:CNN-LSTM} for where each parameter is used.}
+    \begin{adjustbox}{width=\textwidth}
+    \begin{tabular}{|c|c|c|c|c|c|c|c|c|c|}
+        \hline
+        Parameter & Kernel size 1   & Num filters 1 & Kernel size 2   & Num filters 2 & Num layers & Hidden size  & Dropout        & Learning rate & Weight decay \\
+        \hline
+        Values     & 5, 7, 9, 11, 13 & 32, 64, 128   & 5, 7, 9, 11, 13 & 64, 128, 256  & 1, 2, 3    & 64, 128, 256 & 0.2, 0.5, 0.6  & 1e-3, 1e-4 & 1e-3, 1e-4, 1e-5 \\
+        \hline
     \end{tabular}
-    \caption{Table showing the 5 best models, determined by F1-score, found by the grid search algorithm. All models were validated using hold-out validation with 10\% of data being used for the final evaluation of each model, 20\% being used for validation during training, and 70\% being used for training.}
+    \end{adjustbox}
     \label{tab:gridsearch}
 \end{table}
-The five models mentioned in \cref{tab:gridsearch} were then validated using 5-fold cross validation, eliminating any possible advantages that might result from a "lucky" train/test split in the hold-out validation. After cross validation, model 2 proved to be the best model with performance metrics as shown in \cref{tab:bestmodel}, averaged out over all 5 folds.
+\subsection{Cross validation}
+The five top-performing models from the grid search (ranked by F1-score) were evaluated using five-fold cross-validation. To allow sufficient opportunity for optimization, the early stopping patience was set to nine epochs.
 
-\begin{table}
+The parameters and cross-validation metrics (averaged across all five folds) for the optimal seizure detection model are presented in \cref{tab:bestmodel}. \cref{fig:confusion} displays the averaged, normalized confusion matrix for this model. The model achieved a low error rate of 0.69\%, consisting of 0.26\% false negatives and 0.43\% false positives.
+
+The training and validation loss curves for the first fold are illustrated in \cref{fig:loss}. The dashed red line indicates the epoch with the lowest validation loss; the early stopping mechanism saved the weights from this epoch and restored them post-training for the final evaluation of the fold.
+
+\begin{table}[H]
     \centering
-    \begin{tabular}{c c c c}
-        F1-score & Precision & Recall & Accuracy \\
-        0.9895   & 0.9652    & 0.9478 & 0.9570
+    \caption{Performance metrics and parameters of the best seizure detection model found by five-fold cross validation.}
+    \begin{adjustbox}{width=\textwidth}
+    \begin{tabular}{|c|c|c|c|c|c|c|c|c|}
+        \hline
+        Kernel size 1 & Num filters 1 & Kernel size 2 & Num filters 2 & Num layers & Hidden size  & Dropout & Learning rate & Weight decay \\
+        5             & 64            & 9             & 64            & 2          & 64           & 0.5     & 1e-3          & 1e-4         \\
+        \hline
     \end{tabular}
-    \caption{Performance metrics of model 2 from \cref{tab:gridsearch}. The metrics are calculated after every fold in a 5-fold cross validation, and then the averages over all folds are shown here.}
+    \end{adjustbox}
+    \renewcommand{\arraystretch}{0.9}
+    \begin{tabularx}{\textwidth}{|X|X|X|X|}
+        \hline
+        \centering F1-score & \centering Precision & \centering Recall & \centering Accuracy \arraybackslash \\
+        \centering 0.9895   & \centering 0.9921    & \centering 0.9870 & \centering 0.9930 \arraybackslash \\
+        \hline
+    \end{tabularx}
     \label{tab:bestmodel}
 \end{table}
 
 \begin{figure}
     \centering
     \begin{subfigure}{0.45\textwidth}
+        \centering
         \includegraphics[width=\linewidth]{figures/EEG_confusion.png}
+        \caption{Confusion matrix of the seizure detection model, averaged over all 5 folds.}
+        \label{fig:confusion}
     \end{subfigure}
+    \hfill
     \begin{subfigure}{0.45\textwidth}
+        \centering
         \includegraphics[width=\linewidth]{figures/eeg_loss.png}
+        \caption{Training and validation loss during training of the first fold in 5-fold cross validation. The red lines show the exact epoch where the model obtained the best validation loss, as well as the exact value of the loss.}
+        \label{fig:loss}
     \end{subfigure}
+    \caption{Confusion matrix and training \& validation loss of the best seizure detection model.}
+    \label{fig:metrics}
 \end{figure}
+\subsection{Comparison with logistic regression}
+While this model behaves very nicely on the Bonn University EEG dataset, this is also quite a simple dataset, with very clear separations between the classified labels, meaning that a much simpler model would have been able to reach comparable results. A group member trained a logistic regression model, using only statistical features of the dataset, their results can be seen in \cref{tab:kasper}. As seen in the table, their model reaches a result remarkably close to the CNN-LSTM model despite being much simpler. This can mostly be explained by the simplicity of the dataset.
 
-Summarize model performance, loss, accuracy (vs epoch) plots, confusion matrix, and any key visualizations. Make sure you compare your results with at least one of the SOTA algorithm. You are allowed to compare your results with your other group member results (provided you are implementing different algorithms/models). Please make sure that the plots should have x and y labels along with their units (if any).
+\begin{table}
+    \caption{Seizure classification results of logistic regression model, implemented by group member}
+    \label{tab:kasper}
+    \begin{subtable}{.5\linewidth}
+      \centering
+        \caption{Performance metrics from logistic regression model.}
+        \begin{tabular}{|c|c|c|c|c|}
+            \hline
+            Precision & Recall & F1-score & Accuracy & Support \\
+        %   \hline
+        %   0 & 0.94 & 1.0 & 0.97 & 32 \\
+        %   1 & 1.0 & 0.93 & 0.96 & 28 \\
+        %   accuracy & & & 0.97 & 60 \\
+            0.97 & 0.96 & 0.97 & 0.97 & 60 \\
+            \hline
+        %   weighted avg & 0.97 & 0.97 & 0.97 & 60 \\
+        \end{tabular}
+    \end{subtable}%
+    \begin{subtable}{.5\linewidth}
+      \centering
+        \caption{Confusion matrix from logistic regression model.}
+        \begin{tabular}{c|c c}
+                & PP & PN \\
+            \hline
+            AP  & 32 & 0  \\
+            AN  & 2  & 26 \\
+        \end{tabular}
+    \end{subtable} 
+\end{table}
+\subsection{Comparing gesture classification capabilities}
+To test how the two models compare on a more advanced dataset, both models were tasked with binary classification on a gesture dataset. With the gesture dataset, the same five model configurations as before were validated with five-fold cross validation. This is justified by the relatively large variation in hyper-parameter configurations of those five models.
 
-About 2 pages.
+This dataset seems to favor a more complex model, with larger kernel sizes and layer sizes. This also makes sense in the context that this data is much more complex and spans a longer duration, so the CNN can find more significant features and the LSTM is required to retain information for much longer.
+Gesture classification performance metrics of the CNN-LSTM model can be seen in \cref{tab:rps_cnn} along with the hyper-parameters of the model. Confusion matrix and loss curves can be seen in \cref{fig:metrics_rps}. 
+\begin{table}
+    \centering
+    \caption{Performance metrics and parameters of the best model for gesture classification found by five-fold cross validation}
+    \begin{adjustbox}{width=\textwidth}
+    \begin{tabular}{|c|c|c|c|c|c|c|c|c|}
+        \hline
+        Kernel size 1 & Num filters 1 & Kernel size 2 & Num filters 2 & Num layers & Hidden size  & Dropout & Learning rate & Weight decay \\
+        11            & 128           & 7             & 256           & 3          & 128          & 0.5     & 1e-3          & 1e-4         \\
+        \hline
+    \end{tabular}
+    \end{adjustbox}
+    \renewcommand{\arraystretch}{0.9}
+    \begin{tabularx}{\textwidth}{|X|X|X|X|}
+        \hline
+        \rule{0pt}{5pt} \centering F1-score & \centering Precision & \centering Recall & \centering Accuracy \arraybackslash \\        
+        \rule{0pt}{5pt} \centering 0.9562   & \centering 0.9652    & \centering 0.9478 & \centering 0.9570 \arraybackslash \\
+        \hline
+    \end{tabularx}
+    \label{tab:rps_cnn}
+\end{table}
+\begin{figure}
+    \centering
+    \begin{subfigure}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/RPS_confusion.png}
+        \caption{Confusion matrix of the gesture classification model, averaged over all 5 folds.}
+        \label{fig:confusion_rps}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/rps_loss.png}
+        \caption{Training and validation loss during training of the first fold in 5-fold cross validation. The red lines show the exact epoch where the model obtained the best validation loss, as well as the exact value of the loss.}
+        \label{fig:loss_rps}
+    \end{subfigure}
+    \caption{Confusion matrix and training \& validation loss of the best performing gesture classification model.}
+    \label{fig:metrics_rps}
+\end{figure}
+\begin{table}
+    \caption{Gesture classification results of logistic regression model, implemented by group member}
+    \label{tab:kasper_rps}
+    \begin{subtable}{.5\linewidth}
+      \centering
+        \caption{Performance metrics from logistic regression model doing gesture classification.}
+        \renewcommand{\arraystretch}{0.9}
+        \begin{tabular}{|c|c|c|c|c|}
+            \hline
+            Precision & Recall & F1-score & Accuracy & Support \\
+        %   Rock & 0.86 & 0.72 & 0.78 & 597 \\
+        %   Paper & 0.75 & 0.88 & 0.81 & 565 \\
+        %   accuracy & & & 0.80 & 1162 \\
+            0.81 & 0.80 & 0.80 & 0.80 & 1162 \\
+            \hline
+        %   weighted avg & 0.81 & 0.80 & 0.80 & 1162 \\
+        \end{tabular}
+    \end{subtable}%
+    \begin{subtable}{.5\linewidth}
+      \centering
+        \caption{Confusion matrix from logistic regression model.}
+        \renewcommand{\arraystretch}{0.9}
+        \begin{tabular}{c|c c}
+                & PP & PN \\
+            \hline
+            AP  & 429 & 168  \\
+            AN  & 68  & 497 \\
+        \end{tabular}
+    \end{subtable} 
+\end{table}
+
+As can be seen by comparing the logistic regression model (\cref{tab:kasper_rps}) and the CNN-LSTM model (\cref{tab:rps_cnn} and \cref{fig:confusion_rps}), the more advanced CNN-LSTM model is better suited to this type of task, where long-running time-domain signals need classifying, but that also comes at the cost of higher complexity and larger computational costs. 
+\subsection{Comparing to state of the art}
+Comparing the results of the seizure detection CNN-LSTM model with those of the models reviewed in a survey by Garg et al \cite{review}, shows that this model reaches comparable performance, though the paper also shows that others have used the same structure to reach even better results, with accuracy of up to 100\%, as in the works of Mallick and Baths \cite{CLSTM}.
+
+% Summarize model performance, loss, accuracy (vs epoch) plots, confusion matrix, and any key visualizations. Make sure you compare your results with at least one of the SOTA algorithm. You are allowed to compare your results with your other group member results (provided you are implementing different algorithms/models). Please make sure that the plots should have x and y labels along with their units (if any).
+
+% About 2 pages.

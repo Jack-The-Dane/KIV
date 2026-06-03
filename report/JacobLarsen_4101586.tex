@@ -32,8 +32,13 @@
 \usepackage{minted}
 \usepackage{cleveref}
 \usepackage{subcaption}
+\usepackage{adjustbox}
 
 \addbibresource{references.bib}
+
+\setlength{\textfloatsep}{1pt}      % Space between text and floats
+\setlength{\abovecaptionskip}{1pt}  % Space above captions
+\setlength{\belowcaptionskip}{1pt}  % Space below captions
 
 \begin{document}
 \subfile{sections/frontpage.tex}
@@ -45,11 +50,13 @@
 \newpage
 \begin{abstract}
 %The abstract should provide a comprehensive overview of your task, detailing the problem you are addressing, the algorithm you have selected/developed/applied, the dataset you used for evaluation, and the results you obtained. Please ensure the structure reflects a typical computer vision paper, focusing on clarity and conciseness.
-This paper presents the implementation and training of a convolutional neural network (CNN) in combination with a long short term memory (LSTM) model, for detection of active seizures in electroencephalogram (EEG) signals.
-The model operates on minimally preprocessed data, which enables easy and, more importantly, fast preprocessing, so that the model could potentially be used in a real-time context. The model hyper-parameters were tuned via a grid-search algorithm, leading to a highly performant model. 
-The resulting model was compared to a simpler machine learning model, both on the same dataset, but also on a more complex dataset to show that the more advanced model is more generalisable. 
+Automated detection of epileptic seizures from Electroencephalography (EEG) data is critical for improving clinical workflows, patient care, and targeted neuromodulation therapies. Traditional visual inspection of massive EEG volumes by neurologists is slow, labor-intensive, and prone to human error. To address this, we investigate a hybrid deep learning framework combining a Convolutional Neural Network (CNN) and a Long Short-Term Memory (LSTM) network to automatically extract local structural patterns and track temporal dependencies in sequential time-series data.
 
-\textit{Please note that the title page, abstract, table of contents, and pages containing references are not included in the final report length. Ensure that the main body of the report does not exceed 7-8 pages.}
+The proposed CNN-LSTM architecture is rigorously evaluated on the Bonn University EEG dataset for binary classification between healthy states and active seizures. To assess robustness on more complex temporal structures, the model is further benchmarked against a secondary hand-gesture dataset. Minimal preprocessing, featuring bandpass filtering and z-score normalization, is applied to preserve anomalous neural spikes. For the EEG task, data augmentation is achieved via 1-second segmenting with a 75\% overlap, utilizing stratified splits and weighted cross-entropy loss to combat class imbalances. Hyperparameters are optimized using a comprehensive 1152-configuration grid search followed by 5-fold cross-validation.
+
+Experimental results demonstrate that the optimal CNN-LSTM model achieves a high classification reliability on the EEG dataset, yielding an average F1-score of 0.9895 and an accuracy of 99.30\%, with an exceptionally low error rate (0.26\% false negatives and 0.43\% false positives). While a baseline logistic regression model achieves comparable performance on the relatively simple EEG dataset (97\% accuracy), the CNN-LSTM significantly outperforms it on the complex gesture dataset, achieving an F1-score of 0.9562 and an accuracy of 95.70\% compared to the baseline's 80\% accuracy. These findings demonstrate the superior capability of the CNN-LSTM architecture in modeling intricate, long-running time-domain signals.
+
+% \textit{Please note that the title page, abstract, table of contents, and pages containing references are not included in the final report length. Ensure that the main body of the report does not exceed 7-8 pages.}
 \end{abstract}
 
 \newpage

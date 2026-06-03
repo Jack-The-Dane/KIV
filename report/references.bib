@@ -1,14 +1,81 @@
 % Example BibTeX entries for the project report
 
-@article{example_journal,
-  author  = {Author, A. and Author, B. and Author, C.},
-  title   = {Title of the journal article},
-  journal = {Journal Name},
-  year    = {2023},
-  volume  = {10},
-  number  = {2},
-  pages   = {100--120},
-  doi     = {10.xxxx/xxxxx}
+@article{review,
+author = {Garg, Malika and Kaur, Jasbir and Prakash, Neelam Rup},
+title = {Advanced Machine Learning and Deep Learning Approaches for Accurate Epileptic Seizure Detection Using EEG Signals},
+journal = {International Journal of Imaging Systems and Technology},
+volume = {36},
+number = {3},
+pages = {e70342},
+keywords = {deep learning, EEG signal, epileptic seizure, machine learning, medical signal processing},
+doi = {https://doi-org.proxy1-bib.sdu.dk/10.1002/ima.70342},
+url = {https://onlinelibrary-wiley-com.proxy1-bib.sdu.dk/doi/abs/10.1002/ima.70342},
+eprint = {https://onlinelibrary-wiley-com.proxy1-bib.sdu.dk/doi/pdf/10.1002/ima.70342},
+note = {e70342 IMA-25-1829},
+abstract = {ABSTRACT Epilepsy, a neurological disorder that is caused by improper brain activity that results in seizures, is prevalent in millions of persons across the world and for which diagnosis is extremely crucial for treatment. Early detection of epileptic seizures is paramount as it enables timely intervention, improves quality of life, and prevents potential risks during seizures. Machine learning (ML) and deep learning (DL) algorithms have emerged as powerful tools in revolutionizing medical field, particularly in domains involving images, signals, and other types of visual representations. In our study, we have utilized the capability of these algorithms in exploring their impact on the epileptic seizure detection with the help of EEG Signals. Nine DL models, namely LSTM, GRU, Bi-LSTM, CNN, FCNN, Hybrid CNN-LSTM, EEGNet, Shallow ConvNet, and Hybrid CNN-GRU and seven machine learning models that is, Random Forest, XGBoost, KNN, Logistic Regression, Naïve Bayes, Decision Tree, and Stacking Ensemble are employed for classification of epileptic seizures on EEG signal dataset. All the models have been evaluated using the standard performance metrics for determining the effectiveness of these models on the epileptic seizure classification as epileptic and nonepileptic. Visual representations like accuracy-loss graphs and confusion matrix were also generated for better visual understanding of the performance of the model. Among all DL Models, CNN emerged as the best performing model with 85\% accuracy, whereas, among ML models, XGBoost performs best with accuracy of 88\%. The study underscores the potential and effectiveness of ML and DL models in detecting complex patterns and generating predictive insights for classification and detection of epileptic seizure from EEG signals.},
+year = {2026}
+}
+
+@article{jibon2024sequential,
+  title={Sequential graph convolutional network and DeepRNN based hybrid framework for epileptic seizure detection from EEG signal},
+  author={Jibon, Ferdaus Anam and Jamil Chowdhury, AR and Miraz, Mahadi Hasan and Jin, Hwang Ha and Khandaker, Mayeen Uddin and Sultana, Sajia and Nur, Sifat and Siddiqui, Fazlul Hasan and Kamal, AHM and Salman, Mohammad and others},
+  journal={Digital Health},
+  volume={10},
+  pages={20552076241249874},
+  year={2024},
+  publisher={SAGE Publications Sage UK: London, England}
+}
+
+@article{XU2024128644,
+title = {EEG-based epileptic seizure detection using deep learning techniques: A survey},
+journal = {Neurocomputing},
+volume = {610},
+pages = {128644},
+year = {2024},
+issn = {0925-2312},
+doi = {https://doi.org/10.1016/j.neucom.2024.128644},
+url = {https://www.sciencedirect.com/science/article/pii/S0925231224014152},
+author = {Jie Xu and Kuiting Yan and Zengqian Deng and Yankai Yang and Jin-Xing Liu and Juan Wang and Shasha Yuan},
+keywords = {Epilepsy, Seizure detection, EEG, Deep learning, Hybrid models},
+abstract = {Epilepsy is a complex neurological disorder marked by recurrent seizures, often stemming from abnormal discharge of the brain. Electroencephalogram (EEG) captures temporal and spatial shifts in cerebral electrical activity, holding pivotal diagnostic and therapeutic value for epilepsy. Deep learning techniques have made remarkable progress in EEG-based seizure detection over recent years. This review is dedicated to exploring seizure detection approaches based on deep learning, focusing on three distinct avenues. Primarily, we delve into the application of canonical deep learning methods in epilepsy detection. Subsequently, a more in-depth study was conducted on the hybrid models of deep learning. Next, the third is the integration of deep learning and traditional machine learning strategies. Finally, the challenges and future prospects related to this topic are put forward. The uniqueness of this review lies in its novel and comprehensive perspective on the latest research on deep learning-based epilepsy detection by systematically classifying methods, visualizing research progress, and addressing challenges and gaps in current research. It can provide valuable guidance for researchers who want to delve into the field of epileptic seizure detection based on EEG signals.}
+}
+
+﻿@Article{Zhou2026,
+author={Zhou, Shuang
+and Li, Yi
+and Ma, Jinlian
+and Zhou, Weidong},
+title={Efficient seizure detection using swin transformer integrated with convolutional block attention},
+journal={Neural Computing and Applications},
+year={2026},
+month={May},
+day={05},
+volume={38},
+number={10},
+pages={365},
+abstract={Automatic seizure detection plays a vital role in the monitoring, diagnosis, and treatment of epilepsy, reducing the workload of medical staff and improving patients' quality of life. The effective extraction of features from multi-channel electroencephalogram (EEG) remains a critical issue for seizure detection. To address this, we propose a novel end-to-end model, termed C-Swin-T, which integrates the Convolutional Block Attention Module (CBAM) and Swin Transformer (Swin-T). CBAM captures critical spatial and channel-specific features, while Swin-T extracts global long-term dependencies using a hierarchical attention mechanism. Minimal preprocessing is applied to EEG data to focus on the model's feature extraction capabilities. The C-Swin-T model was evaluated on the CHB-MIT dataset using both segment-based and event-based metrics in subject-specific and cross-subject scenarios. Considering the generalization issue of the model, besides conducting experiments on the CHB-MIT dataset, experiments are also performed on the SH-SDU dataset. On the CHB-MIT dataset, in a subject-specific scenario, the segment-based experiment results achieve an accuracy of 98.62{\%}, specificity of 99.64{\%}, and sensitivity of 96.90{\%}. The event-based experiment results achieve a sensitivity of 97.74{\%} and a false detection Rate (FDR) of 0.37/h. In cross-subject experiments, it achieves an average accuracy of 90.58{\%}, a sensitivity of 89.66{\%}, and an FDR of 0.69/h. On the SH-SDU dataset, the segment-based experiment results achieve an accuracy of 94.38{\%}, specificity of 93.89{\%} and sensitivity of 96.73{\%}. It achieved state-of-the-art results, with high accuracy, sensitivity, and specificity, demonstrating its robustness and effectiveness. The experimental results confirm the model's potential for clinical seizure detection, particularly its ability to generalize across different subjects with minimal preprocessing.},
+issn={1433-3058},
+doi={10.1007/s00521-026-12025-y},
+url={https://doi.org/10.1007/s00521-026-12025-y}
+}
+
+@article{DONG2025107075,
+title = {EEG-based patient-specific seizure prediction based on Spatial–Temporal Hypergraph Attention Transformer},
+journal = {Biomedical Signal Processing and Control},
+volume = {100},
+pages = {107075},
+year = {2025},
+issn = {1746-8094},
+doi = {https://doi.org/10.1016/j.bspc.2024.107075},
+url = {https://www.sciencedirect.com/science/article/pii/S1746809424011339},
+author = {Changxu Dong and Dengdi Sun and Zejing Zhang and Bin Luo},
+keywords = {Seizure prediction, Long-range dependencies, High-order correlations, Attention mechanism},
+abstract = {Background and Objectives:
+Patient-specific seizure prediction based on Electroencephalogram (EEG) is a challenging and significant neuromedicine study, which could potentially safeguard drug-resistant patients from unforeseen risks in their daily lives. However, prevalent seizure prediction frameworks based on convolutional neural networks (CNNs) prioritize local information while overlooking long-range global dependencies and high-order spatial correlations prevalent among brain leads.
+Methods:
+To address the limitations above, we propose a novel Spatial–Temporal Hypergraph Attention Transformer (STHAT) framework for extracting the key features in EEG signals. Aimed at the characteristics of epilepsy EEG data, our framework comprises two primary branches: (1) Long-range Temporal Feature Dependencies: This branch aims to capture temporal dependencies within EEG signals by leveraging Swin Transformer and 2D-CNN. Utilizing shifting windows and convolution operations, we encode local and global content dependencies within segmented EEG samples. (2) High-Order Spatial Information Correlations: We construct a raw graph structure using the Pearson correlation coefficient, enabling the extraction of initial node embeddings through graph convolution operations (GCO). Subsequently, a dynamic hypergraph is formed using K-Nearest Neighbors (KNN) and K-means clustering, allowing us to employ a Hypergraph Attention Network (HAN) to capture structural context relationships among brain regions. By integrating information from both branches, we utilize a linear layer to derive the final seizure prediction outcome.
+Experiment and Results:
+Extensive evaluations are conducted on the widely used CHB-MIT dataset. Our comprehensive experimental results demonstrate the effectiveness of the proposed framework in achieving superior performance in automatic seizure data prediction, outperforming state-of-the-art algorithms. The STHAT framework effectively exploits both temporal and spatial information within EEG signals, enhancing seizure prediction accuracy.}
 }
 
 @article{bonnData,
@@ -23,14 +90,24 @@
   doi = {10.1186/s12911-023-02180-w}}
 
 
-@inproceedings{example_conference,
-  author    = {Researcher, D. and Researcher, E.},
-  title     = {Title of the conference paper},
-  booktitle = {Proceedings of the International Conference on Something},
-  year      = {2022},
-  pages     = {200--210},
-  organization = {Organization Name}
-}
+@ARTICLE{CLSTM,
+    
+AUTHOR={Mallick, Sayani  and Baths, Veeky },
+           
+TITLE={Novel deep learning framework for detection of epileptic seizures using EEG signals},
+          
+JOURNAL={Frontiers in Computational Neuroscience},
+          
+VOLUME={Volume 18 - 2024},
+  
+YEAR={2024},
+  
+URL={https://www.frontiersin.org/journals/computational-neuroscience/articles/10.3389/fncom.2024.1340251},
+  
+DOI={10.3389/fncom.2024.1340251},
+  
+ISSN={1662-5188}}
+
 
 @book{example_book,
   author    = {Writer, F. and Writer, G.},

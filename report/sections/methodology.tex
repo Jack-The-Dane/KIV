@@ -1,55 +1,81 @@
 \section{Methodology}
 \subsection{Dataset}
-The dataset used for this project is the Bonn University EEG dataset, which contains data from five healthy subjects as well as 5 subjects suffering from epilepsy \cite{bonnData}. The ten subjects have been measured using single-channel EEG measurements, which are then split in to five subsets, A through E. The healthy subjects had measurements taken with their eyes opened and closed, which are set A and B, respectively. Sets C and D were measured from the epilepsy patients, while they were not experiencing an active seizure, but with two different electrode placements. The final set, E, was recorded from the epilepsy patients while they were experiencing an active seizure. The data was recorded in segments of 23.6 seconds at a sampling frequency of 173.61 Hz, giving 4097 datapoints per measurement, and each subset contains 100 measurements. All measurements inside each subset have been randomized, such that they cannot be connected by their sequence in the dataset. 
-For this project only classification of healthy vs active seizure subjects is considered, so only the subsets A, B and E are used. It should be noted that this gives an unbalanced dataset, as there are twice as many healthy measurements as active seizure ones. A plot of one measurement from each of these subsets can be seen in \cref{fig:EEG_data}. 
-
-\begin{figure}
-    \includegraphics[width=\textwidth]{figures/EEG_data_vis.png}
-    \caption{Plot of one measurement from each of the subsets A, B and E.}
-    \label{fig:EEG_data}
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}{0.45\textwidth}
+        \includegraphics[width=\textwidth]{figures/EEG_data_vis.png}
+        \caption{Plot of one measurement from each of the subsets A, B and E. Only the first 1000 samples are shown, as there is no further structure to the data.}
+        \label{fig:EEG_data}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}{0.45\textwidth}
+        \includegraphics[width=\textwidth]{figures/gesture_data.png}
+        \caption{Plot of one measurement from the paper and rock gesture dataset. The unit of the measurement is unknown, and no information could be found about the dataset.}
+        \label{fig:gesture_data}
+    \end{subfigure}
+    \caption{Plots illusttrating the structure of the data in the two datasets used in the project.}
+    \label{fig:data_graphs}
 \end{figure}
+
+The primary dataset used in this project is the Bonn University EEG dataset, which comprises single-channel EEG recordings from five healthy individuals and five epilepsy patients \cite{bonnData}. The data is divided into five subsets (A through E), each containing 100 randomized, 23.6-second segments sampled at 173.61 Hz (4,097 datapoints per measurement).
+\begin{itemize}
+    \item Sets A \& B: Recorded from healthy subjects with eyes open and closed, respectively.
+    \item Sets C \& D: Recorded from epilepsy patients during seizure-free intervals using two different electrode placements.
+    \item Set E: Recorded from epilepsy patients during active seizure activity.
+\end{itemize}
+To focus the project on binary classification between healthy states and active seizures, only subsets A, B, and E are utilized. Consequently, the resulting dataset is unbalanced, containing twice as many healthy measurements as active seizure ones. Representative waveforms from these three subsets are displayed in \cref{fig:EEG_data}.
+
+\subsubsection{Gesture dataset}
+To evaluate the model's performance on a more complex task, a secondary dataset featuring hand gestures is introduced. Each measurement consists of a single-channel, 4-second recording containing $1,024$ samples captured at a sampling frequency of $256$ Hz. While the original dataset includes three gestures (rock, paper, and scissors), this study restricts analysis to the binary classification of "paper" versus "rock". Each class contains approximately 2900 samples. The underlying units and recording methodology for this dataset are unspecified. Sample measurements for both classes are visualized in \cref{fig:gesture_data}.
+
 \subsection{Data preprocessing}
-Minimal preprocessing is done on the data in this project, as the intention is for the model to be trained on the time-series data. A bandpass filter is applied to the data with a passband og $0.5$ Hz to $40$ Hz, this is to remove any artifacts created during data collection. Each data point is then normalized to its z-score, this is done because the model which is going to be used, a convolutional neural network, is very sensitive to large differences in magnitude, so if other patterns are to be found, those differences need to be removed. 
+Minimal preprocessing is done on the data in this project, as the intention is for the model to be trained on the time-series data. First, a bandpass filter with a passband of 0.5 Hz to 40 Hz is applied to remove artifacts introduced during data collection (only applied to EEG dataset). Next, each data point is normalized to its z-score (applied to both datasets). This step is important because the Convolutional Neural Network is very sensitive to large variations in signal amplitude; normalizing the data removes these scaling discrepancies, allowing the network to focus on underlying structural patterns. Z-score normalization is specifically chosen so that statistically anomalous spikes are preserved as distinct, high-amplitude features in the processed output.
 
 \subsection{Model architecture}
-The chosen model architecture for this task is a combined convulational neural network and a long short-term memory (CNN-LSTM) model. 
-The idea behind this is that the CNN model will be applied to the input data, where it will attempt to find spatial features in the input, as the convolutional filters are passed over it. 
-The CNN in this paper is implemented with this structure:
-\begin{minted}[breaklines]{python}
-# CNN feature extractor
-self.cnn = nn.Sequential(
-    nn.Conv1d(1, cnn_internal, kernel_size=kernel_size1, stride=1, padding=kernel_size1//2),
-    nn.ReLU(),
-    nn.MaxPool1d(2),
-    nn.Dropout(dropout),
+The chosen model architecture for this task is a combined Convulational Neural Network and a Long Short-Term Memory (CNN-LSTM) model. 
+The idea behind this is that the CNN model will be applied to the input data, where it will learn the most significant spatial features during training and then extract those, as the convolutional filters are passed over it. The LSTM will then learn the time-dependent relationships between those features. Finally, a fully connected layer is used to convert the LSTM output to the two target classes. The model structure and parameters can be seen in \cref{fig:CNN-LSTM}.
+\begin{figure}[H]
+    \includegraphics[width=\textwidth]{figures/CNN-LSTM.jpg}
+    \caption{Structure of the implemented CNN-LSTM. All parts in red boxes are non-configurable, while boxes of all other colors contain parameters that will be varied in a grid search. The dropout parameter is kept the same in all layers, in the interest of reducing the number of configurations searched.}
+    \label{fig:CNN-LSTM}
+\end{figure}
+The CNN model is a sequential model consisting of two one-dimensional convolutional layers. These two layers each learn and extract a number of features by passing a kernel over their respective inputs. To help the CNN model learn more stably, the ReLU activation layers introduce non-linearities and prevent vanishing gradient problems, while the max pooling layers serve to only forward the most significant features while also halving the output size, such that the LSTM will be operating on input lengths one quarter the length of the input to the CNN. The dropout layers help both the CNN and the LSTM in preventing overfitting to the training data. 
 
-    nn.Conv1d(cnn_internal, cnn_out, kernel_size=kernel_size2, padding=kernel_size2//2),
-    nn.ReLU(),
-    nn.MaxPool1d(2),
-    nn.Dropout(dropout)
-)
-\end{minted}
-The convolutional 1D layers detect spatial features, the ReLU activation layers introduce non-linearities and prevent vanishing gradient problems, the max pooling layers serve to only forward the most significant features while also halving the output size, such that the LSTM will be operating on an input one quarter the size of the input to the CNN. The dropout layers help in preventing overfitting to the training data. A grid search will later be performed to find the best kernel sizes and layer sizes etc. {\color{red} Skal der stå mere eller mindre her????}
+The LSTM is a Recurrent Neural Network (RNN), containing hidden layers comprised of memory cells, which are gated with three gates; an input, output and a forget gate. These gates serve to solve the issue of vanishing gradients, which is an issue that plagues traditional RNNs, when having to retain information for a long time. The gates control how much new information is added to the memory cell (input), how much of the old information is discarded (forget), and how much of the currently known information to output (output). In combination, they allow an LSTM model to retain relevant information over many timesteps.
 
-The output values, i.e. what features were found and their spatial locations, are then passed in to the LSTM model, which attempts to learn what a sequence of features over time signifies. Each output feature of the CNN is passed in to the LSTM separately, so it learns on the features over time. A fully connected layer is then used to connect the output of the LSTM to the two output classes.
+To find the best combination of model hyper-parameters a grid search was performed.
 
 \subsection{Data segmentation}
-To increase the amount of data available for training, and to decrease the size of the input to the model, all measurements are segmented in to segments of 1 second duration. This segmentation can be done without degrading the quality of the training data, as the classification is more about detecting a state, the state of having a seizure, and not so much about the long running structure of the data. 
-To further increase the amount of training data, all training data segments also overlap, such that 2 seconds of measurement can become five 1 second segments, with an overlap of $75$\%. This overlap also should increase detection capability, as the model learns to recognize seizure markers not by their position in the input data, but only by the characteristica of the surrounding data.
-Test and validation data also gets segmented, but without overlap, as there is no need to inflate the amount of data in these sets.
+To reduce model input size and expand the training set, all measurements are divided into 1-second segments. This reduction does not degrade data quality because the task focuses on state detection (identifying an active seizure) rather than capturing long-term temporal structures. Shorter inputs also lower model complexity, reducing the memory retention required for the LSTM and allowing the CNN to utilize fewer filters.
+
+To further augment the training data, these segments are generated with a 75\% overlap, transforming a 2-second recording window into five distinct 1-second samples. This overlap enhances robustness, encouraging the model to recognize seizure markers based on localized characteristics rather than their spatial position within the sequence. Validation and test sets are segmented identically but without overlap to avoid artificially inflating evaluation metrics.
+
+For gesture classification, the data is not segmented, as most of the information is in the evolution of the signal over time.
+
+\subsubsection{Data leakage and class imbalance}
+To avoid data leakage related to segmentation, all train/test splits are done before the signal is segmented, that way none of the validation data has a possibility of ending up in the training data, or vice-versa.
+
+To account for class imbalances in the dataset, all train/test splits are stratified such that each split will have the same proportion of classes (±1 sample). This is also true for the 5-fold cross validation, where a stratified implementation is used. This is important because the dataset contains twice as many healthy measurements compared to seizure measurements, so if either is proportionally misrepresented in the validation data, the evalutation may show misleading results.
+
+Stratification is also used for gesture classification, even though it is not strictly necessary as there are an approximately equal number of samples of each class.
 
 \subsection{Model training}
-For training the model a cross entropy loss function is used as the criterion, where the initial weights of the criterion are loaded with double value for the active seizure class, which has half as many samples as the healthy class.
-For optimization an adaptive moment (Adam) optimizer is used, which combines the adaptive learning rate of root mean square propagation with the convergence speed of momentum based optimization. The Adam optimizer will adjust learning rates for each individual weight that is being trained in the model, reducing the rate if the gradient starts oscillating.
-To reduce oscillations in the overall model's validation loss, a learning rate scheduler is used, which will reduce the learning rate, if the validation loss hits a plateau, in the hopes that that will bring the model closer to the local minimum that it is oscillating around.
+Model training utilizes cross-entropy loss as the criterion. To account for class imbalance, the loss function is weighted, assigning double the weight to the active seizure class. Optimization is driven by the Adam optimizer, which combines adaptive learning rates with momentum to adjust individual weights and suppress gradient oscillations. To further stabilize convergence, a "Reduce-on-Plateau" learning rate scheduler dynamically lowers the learning rate when the validation loss plateaus, helping the model settle into a local minimum.
 
-To prevent the model overfitting to the training data an early stopping class is also implemented, which looks at the validation loss after each epoch, and saves the model parameters each time it improves. If the validation loss does not improve for a number of epochs, model training is stopped, and the model weights with the best validation loss are loaded before evaluation.
+To mitigate overfitting, an early stopping mechanism monitors validation loss at each epoch, saving the model parameters only upon improvement. If the validation loss fails to improve for a predetermined number of epochs, training terminates, and the best-performing weights are restored for evaluation.
 
-To find the best model hyper-parameters, a grid search is executed, training a large number of models on many different combinations of parameters. Each model is evaluated with hold-out validation, and then all performance metrics and parameters are saved. The saved performance metrics are F1-score, accuracy, precision, recall and confusion matrix. The F1-score will be used to determine the best model, as that strikes a balance between penalizing both false positives and false negatives, as both are important when trying to detect seizures. 
+Hyperparameter tuning is conducted via a grid search evaluated through hold-out validation. While accuracy, precision, recall, and the confusion matrix are recorded for each configuration, the F1-score is used as the primary metric to determine the optimal model. The F1-score is the harmonic mean of precision and recall, and balances the penalties for false positives and false negatives, both critical in clinical seizure detection, while robustly handling the dataset's class imbalance. The equations for accuracy, precision, recall and F1-score can be seen in \cref{tab:equations}.
+\begin{table}[H]
+    \centering
+    \begin{tabular}{|c|c|c|c|}
+        \hline
+        $\text{Accuracy} = \frac{TP+TN}{TP+FP+TN+FN}$ & $\text{Precision} = \frac{TP}{TP+FP}$& $\text{Recall} = \frac{TP}{TP+FN}$ & $F1 = 2 \frac{\text{precision} \cdot \text{recall}}{\text{precision} + \text{recall}}$ \\
+        \hline
+    \end{tabular}
+     \caption{Performance metric equations. TP is the number of true positives, FP is the number of false positives, TN is the number of true negatives and FN is the number of false negatives. All these numbers can be found in the confusion matrix after a model has been evaluated.}
+    \label{tab:equations}
+\end{table}
 
-{\color{red} skriv noget om data leakage måske?}
+% Describe the model architecture, dataset, pre-processing steps (if any), training strategy details (optimizer, loss, etc.), evaluation metrics, and implementation details. Please make sure that all the figures should be clear and must have a caption. Further, equations should be numbered correctly. Also, all the variables in the equations should be explained.
 
-
-Describe the model architecture, dataset, pre-processing steps (if any), training strategy details (optimizer, loss, etc.), evaluation metrics, and implementation details. Please make sure that all the figures should be clear and must have a caption. Further, equations should be numbered correctly. Also, all the variables in the equations should be explained.
-
-About 2 pages.
+% About 2 pages.

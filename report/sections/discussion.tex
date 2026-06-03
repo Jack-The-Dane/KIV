@@ -1,5 +1,9 @@
 
 \section{Discussion and Conclusions}
-Discuss findings, implications, and limitations.
+The CNN-LSTM architecture demonstrates strong performance in the classification of time-domain signals. For seizure detection, the model achieved an average F1-score of $0.989$ and an accuracy of $99.3$\%, indicating a high degree of classification reliability. In the gesture detection task, the CNN-LSTM model attained an average F1-score of $0.956$ and an accuracy of $96$\%, which also reflects strong performance. However, the hyper-parameter configurations explored in this project suggest that further performance improvements may be attainable. In particular, gesture detection appears to benefit from increased model complexity, including larger convolutional kernels, a greater number of layers, and additional filters.
 
-About $\frac{1}{2}$ page.
+A notable limitation of CNN-LSTM architectures is their computational cost, both during training and inference. This cost increases substantially as network depth and layer size grow, potentially limiting the feasibility of deploying such models in real-time applications. This concern is particularly relevant for seizure detection, where low-latency processing may be critical. Nevertheless, the impact of this limitation can be mitigated through the use of appropriate hardware accelerators, such as graphics processing units (GPUs), which can significantly reduce both training and inference times.
+
+% Discuss findings, implications, and limitations.
+
+% About $\frac{1}{2}$ page.

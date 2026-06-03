@@ -1,12 +1,19 @@
 \babel@toc {english}{}\relax 
 \contentsline {section}{\numberline {1}Introduction}{1}{section.1}%
 \contentsline {section}{\numberline {2}Related Works}{1}{section.2}%
-\contentsline {section}{\numberline {3}Methodology}{1}{section.3}%
-\contentsline {subsection}{\numberline {3.1}Dataset}{1}{subsection.3.1}%
-\contentsline {subsection}{\numberline {3.2}Data preprocessing}{1}{subsection.3.2}%
-\contentsline {subsection}{\numberline {3.3}Model architecture}{1}{subsection.3.3}%
-\contentsline {subsection}{\numberline {3.4}Data segmentation}{2}{subsection.3.4}%
-\contentsline {subsection}{\numberline {3.5}Model training}{3}{subsection.3.5}%
-\contentsline {section}{\numberline {4}Results}{3}{section.4}%
-\contentsline {section}{\numberline {5}Discussion and Conclusions}{5}{section.5}%
-\contentsline {section}{\numberline {6}Reflection}{5}{section.6}%
+\contentsline {section}{\numberline {3}Methodology}{2}{section.3}%
+\contentsline {subsection}{\numberline {3.1}Dataset}{2}{subsection.3.1}%
+\contentsline {subsubsection}{\numberline {3.1.1}Gesture dataset}{2}{subsubsection.3.1.1}%
+\contentsline {subsection}{\numberline {3.2}Data preprocessing}{3}{subsection.3.2}%
+\contentsline {subsection}{\numberline {3.3}Model architecture}{3}{subsection.3.3}%
+\contentsline {subsection}{\numberline {3.4}Data segmentation}{4}{subsection.3.4}%
+\contentsline {subsubsection}{\numberline {3.4.1}Data leakage and class imbalance}{4}{subsubsection.3.4.1}%
+\contentsline {subsection}{\numberline {3.5}Model training}{4}{subsection.3.5}%
+\contentsline {section}{\numberline {4}Results}{5}{section.4}%
+\contentsline {subsection}{\numberline {4.1}Grid search}{5}{subsection.4.1}%
+\contentsline {subsection}{\numberline {4.2}Cross validation}{5}{subsection.4.2}%
+\contentsline {subsection}{\numberline {4.3}Comparison with logistic regression}{6}{subsection.4.3}%
+\contentsline {subsection}{\numberline {4.4}Comparing gesture classification capabilities}{7}{subsection.4.4}%
+\contentsline {subsection}{\numberline {4.5}Comparing to state of the art}{8}{subsection.4.5}%
+\contentsline {section}{\numberline {5}Discussion and Conclusions}{8}{section.5}%
+\contentsline {section}{\numberline {6}Reflection}{8}{section.6}%

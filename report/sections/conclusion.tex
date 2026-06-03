@@ -1,4 +1,12 @@
 \section{Reflection}
-Briefly summarize your experience in implementing this task and your observations/achievements, and future directions.
+In this project a CNN-LSTM model was implemented to detect seizures in the Bonn University EEG dataset. A grid search algorithm was executed to find the best combination of hyper-parameters. Care was taken to avoid data leakage, and the class imbalance of the dataset was also considered. Minimal preprocessing was done to the data, but it was segmented, such that the model was trained on one-second chunks instead of whole measurements, this increased the amount of training data, and lowered the complexity of the input data, enabling simpler models.
 
-About $\frac{1}{2}$ page.
+The best 5 configurations found by the grid search algorithm were then evaluated with 5-fold cross validation, and the best model of those achieved an average F1-score of $0.9895$ and accuracy of $99.3$\%. The model was compared to a simpler logistic regression model, which reached comparable results, due to the simplicity of the dataset used.
+
+The same 5 best configurations for EEG classification were also evaluated in gesture classification, where the 5-fold cross validation revealed a different configuration to be best. In this task, the best model obtained an average F1-score of $0.9562$ and an accuracy of $95.7$\%. Comparing these results to those of the logistic regression model shows the more complex CNN-LSTM to be better suited for gesture detection. This is likely due to the more complex data, where statistical features can not capture all of the information, but the CNN-LSTM is better able to find relevant features to extract during training, and learn the relationships between them. 
+
+
+
+% Briefly summarize your experience in implementing this task and your observations/achievements, and future directions.
+
+% About $\frac{1}{2}$ page.
