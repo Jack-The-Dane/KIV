@@ -1,4 +1,4 @@
-from cnn_improved import init_train_eval_model, EEGDataset, PARAMETER_MAMES, load_data, DATA_DIR, preprocess_signals, CNN_LSTM, DEVICE
+from cnn_lstm import init_train_eval_model, EEGDataset, PARAMETER_MAMES, load_data, DATA_DIR, preprocess_signals, CNN_LSTM, DEVICE
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split, StratifiedKFold, ParameterGrid

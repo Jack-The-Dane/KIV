@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
 import os
-from cnn_improved import PARAMETER_MAMES
+from cnn_lstm import PARAMETER_MAMES
 from sklearn.metrics import ConfusionMatrixDisplay
 
 import seaborn as sn

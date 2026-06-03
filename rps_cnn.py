@@ -8,7 +8,7 @@ from sklearn.model_selection import train_test_split, KFold, ParameterGrid
 from sklearn.metrics import classification_report, accuracy_score, precision_recall_fscore_support
 from scipy.signal import butter, filtfilt
 
-from cnn_improved import run_config, grid_search, DEFAULT_PARAMS, hold_out_validation, export, kfold_cv, PARAMETER_MAMES
+from cnn_lstm import run_config, grid_search, DEFAULT_PARAMS, hold_out_validation, export, kfold_cv, PARAMETER_MAMES
 
 # -----------------------------
 # CONFIG
