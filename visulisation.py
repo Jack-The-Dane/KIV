@@ -26,10 +26,13 @@ import seaborn as sn
 
 # df1 = pd.read_parquet("results/grid_search1.parquet")
 # df2 = pd.read_parquet("results/grid_search2.parquet")
-# df1["run"] = 1
-# df2["run"] = 2
+# # df1["run"] = 1
+# # df2["run"] = 2
 # df = pd.concat([df1, df2], axis=0, ignore_index=True)
 # print(df.columns)
+# for p in PARAMETER_MAMES:
+#     print(f"{p}: {df[p].unique()}")
+# quit()
 # sorted_df = df.sort_values("f1", ascending=False, axis=0)
 # print(sorted_df[PM].head(10))
 
@@ -43,6 +46,25 @@ import seaborn as sn
 # cols = [c for c in rps_k.columns if "avg" in c]
 # print("KFold RPS: ")
 # print(rps_k[cols].sort_values("avg_f1", ascending=False))
+
+paper = pd.read_csv("GestureClassification/PaperData.csv", header=None)
+rock = pd.read_csv("GestureClassification/RockData.csv", header=None)
+print(rock.shape)
+print(paper.shape)
+#quit()
+fig, ax = plt.subplots(2, 1)
+ax[0].plot(paper.loc[0,:], label="Paper")
+ax[1].plot(rock.loc[0,:], label="Rock")
+ax[0].legend(loc="upper right")
+ax[1].legend(loc="upper right")
+ax[1].set_xlabel("Sample")
+ax[0].set_ylabel("Unit unknown")
+ax[1].set_ylabel("Unit unknown")
+plt.suptitle("Measurements from rock and paper datasets")
+#plt.savefig("report/figures/gesture_data.png")
+#plt.show()
+plt.clf()
+
 
 def load_data(data_dir, folders:list[str], label:int):
     X = []
@@ -63,11 +85,11 @@ A = load_data("dataset", ["A"], 0)
 B = load_data("dataset", ["B"], 0)
 E = load_data("dataset", ["E"], 1)
 
-A1 = A[0][0]
-B1 = B[0][0]
-E1 = E[0][0]
+A1 = A[0][0][:1000]
+B1 = B[0][0][:1000]
+E1 = E[0][0][:1000]
 
-fig, axs = plt.subplots(3, 1, figsize=(15,5))
+fig, axs = plt.subplots(3, 1)
 axs[0].plot(A1, label="A")
 axs[1].plot(B1, label="B")
 axs[2].plot(E1, label="E")
@@ -78,14 +100,14 @@ axs[2].set_ylabel("Microvolt")
 axs[0].legend(loc="upper right")
 axs[1].legend(loc="upper right")
 axs[2].legend(loc="upper right")
-fig.suptitle("One EEG measurement from subsets A, B and E")
+fig.suptitle("Segment of EEG measurement from subsets A, B and E")
 #plt.savefig(fname="report/figures/EEG_data_vis.png")
 #plt.show()
 plt.cla()
 plt.clf()
-
+#quit()
 def plot_loss(val_loss, train_loss, filename = None):
-    fig, ax = plt.subplots(figsize=(10,10))
+    fig, ax = plt.subplots(figsize=(8,6))
     epochs = np.arange(1, len(val_loss)+1, 1)
     min_loss_epoch = float(np.argmin(val_loss)+1)
     min_val_loss = min(val_loss)
@@ -127,7 +149,7 @@ avg_cols = ["avg_f1","avg_precision","avg_recall","avg_accuracy","avg_c11","avg_
 print(rps_top5[PARAMETER_MAMES+avg_cols])
 eeg_best = eeg_top5.sort_values("avg_f1", axis=0, ascending=False).head(1)
 print("Best EEG model:")
-print(eeg_best[PARAMETER_MAMES + avg_cols])
+print(eeg_best[PARAMETER_MAMES+["avg_f1"]])
 print("Best EEG model confusion matrix:")
 conf_EEG = np.array([[eeg_best["avg_c11"].to_list()[0], eeg_best["avg_c12"].to_list()[0]],
                      [eeg_best["avg_c21"].to_list()[0], eeg_best["avg_c22"].to_list()[0]]])
@@ -140,7 +162,7 @@ eeg_train_loss1 = eeg_best["fold0_train_loss"].to_list()[0]
 
 rps_best = rps_top5.sort_values("avg_f1", axis=0, ascending=False).head(1)
 print("Best RPS model:")
-print(rps_best[PARAMETER_MAMES+avg_cols])
+print(rps_best[PARAMETER_MAMES+["avg_f1"]])
 print("Best rps model confusion matrix:")
 conf_rps = np.array([[rps_best["avg_c11"].to_list()[0], rps_best["avg_c12"].to_list()[0]],
                      [rps_best["avg_c21"].to_list()[0], rps_best["avg_c22"].to_list()[0]]])
@@ -162,6 +184,6 @@ rps_train_loss = rps_best["fold0_train_loss"].to_list()[0]
 # plt.show()
 # plt.clf()
 
-v = [eeg_best[f"fold{i}_val_loss"] for i in range(5)]
-for t in v:
-    print(t[1].shape)
+# v = [eeg_best[f"fold{i}_val_loss"] for i in range(5)]
+# for t in v:
+#     print(t[1].shape)
