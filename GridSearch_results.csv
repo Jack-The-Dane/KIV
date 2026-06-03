@@ -1,2 +1,0 @@
-accuracy,precision,recall,f1,method,k1,k2,cnn_internal,cnn_out,hidden,layers
-0.9711111111111111,0.9881235154394299,0.9244444444444444,0.9552238805970149,grid-search + 5-Fold CV,5,5,16,32,64,1
