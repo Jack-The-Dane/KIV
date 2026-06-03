@@ -15,7 +15,7 @@ The grid search algorithm searched through $1152$ different combinations of hype
     \label{tab:gridsearch}
 \end{table}
 \subsection{Cross validation}
-The five top-performing models from the grid search (ranked by F1-score) were evaluated using five-fold cross-validation. To allow sufficient opportunity for optimization, the early stopping patience was set to nine epochs.
+The five top-performing models from the grid search (ranked by F1-score) were evaluated using five-fold cross-validation. The five models can be seen in \cref{tab:app_gridsearch}. To allow sufficient opportunity for optimization, the early stopping patience was set to nine epochs.
 
 The parameters and cross-validation metrics (averaged across all five folds) for the optimal seizure detection model are presented in \cref{tab:bestmodel}. \cref{fig:confusion} displays the averaged, normalized confusion matrix for this model. The model achieved a low error rate of 0.69\%, consisting of 0.26\% false negatives and 0.43\% false positives.
 
