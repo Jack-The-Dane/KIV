@@ -15,7 +15,7 @@ The grid search algorithm searched through $1152$ different combinations of hype
     \label{tab:gridsearch}
 \end{table}
 \subsection{Cross validation}
-The five top-performing models from the grid search (ranked by F1-score) were evaluated using five-fold cross-validation. The five models can be seen in \cref{tab:app_gridsearch}. To allow sufficient opportunity for optimization, the early stopping patience was set to nine epochs.
+The five top-performing models from the grid search (ranked by F1-score) were evaluated using five-fold cross-validation. The five models can be seen in \cref{app:gridsearch}. To allow sufficient opportunity for optimization, the early stopping patience was set to nine epochs.
 
 The parameters and cross-validation metrics (averaged across all five folds) for the optimal seizure detection model are presented in \cref{tab:bestmodel}. \cref{fig:confusion} displays the averaged, normalized confusion matrix for this model. The model achieved a low error rate of 0.69\%, consisting of 0.26\% false negatives and 0.43\% false positives.
 
@@ -61,9 +61,9 @@ The training and validation loss curves for the first fold are illustrated in \c
     \label{fig:metrics}
 \end{figure}
 \subsection{Comparison with logistic regression}
-While this model behaves very nicely on the Bonn University EEG dataset, this is also quite a simple dataset, with very clear separations between the classified labels, meaning that a much simpler model would have been able to reach comparable results. A group member trained a logistic regression model, using only statistical features of the dataset, their results can be seen in \cref{tab:kasper}. As seen in the table, their model reaches a result remarkably close to the CNN-LSTM model despite being much simpler. This can mostly be explained by the simplicity of the dataset.
+While this model behaves very nicely on the Bonn University EEG dataset, this is also quite a simple dataset, with very clear separations between the classified labels, meaning that a much simpler model would have been able to reach comparable results. A group member, Kasper, trained a logistic regression model, using only statistical features of the dataset, their results can be seen in \cref{tab:kasper}. As seen in the table, their model reaches a result remarkably close to the CNN-LSTM model despite being much simpler. This can mostly be explained by the simplicity of the dataset.
 
-\begin{table}
+\begin{table}[h]
     \caption{Seizure classification results of logistic regression model, implemented by group member}
     \label{tab:kasper}
     \begin{subtable}{.5\linewidth}
@@ -93,13 +93,13 @@ While this model behaves very nicely on the Bonn University EEG dataset, this is
     \end{subtable} 
 \end{table}
 \subsection{Comparing gesture classification capabilities}
-To test how the two models compare on a more advanced dataset, both models were tasked with binary classification on a gesture dataset. With the gesture dataset, the same five model configurations as before were validated with five-fold cross validation. This is justified by the relatively large variation in hyper-parameter configurations of those five models.
+To test how the two models compare on a more advanced dataset, both models were tasked with binary classification on a gesture dataset. With the gesture dataset, the same five model configurations as before were validated with five-fold cross validation. This is justified by the relatively large variation in hyper-parameter configurations of those five models, as seen in \cref{app:gridsearch}.
 
 This dataset seems to favor a more complex model, with larger kernel sizes and layer sizes. This also makes sense in the context that this data is much more complex and spans a longer duration, so the CNN can find more significant features and the LSTM is required to retain information for much longer.
 Gesture classification performance metrics of the CNN-LSTM model can be seen in \cref{tab:rps_cnn} along with the hyper-parameters of the model. Confusion matrix and loss curves can be seen in \cref{fig:metrics_rps}. 
 \begin{table}
     \centering
-    \caption{Performance metrics and parameters of the best model for gesture classification found by five-fold cross validation}
+    \caption{Parameters and performance metrics of the best model for gesture classification found by five-fold cross validation}
     \begin{adjustbox}{width=\textwidth}
     \begin{tabular}{|c|c|c|c|c|c|c|c|c|}
         \hline

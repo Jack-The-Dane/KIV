@@ -5,7 +5,7 @@
 % Language setting
 % Replace `english' with e.g. `spanish' to change the document language
 \usepackage[english]{babel}
-
+\usepackage{csquotes}
 % Set page size and margins
 % Replace `letterpaper' with `a4paper' for UK/EU standard size
 \usepackage[a4paper,top=3cm,bottom=3cm,left=2cm,right=2cm]{geometry}
@@ -39,7 +39,7 @@
 \setlength{\textfloatsep}{1pt}      % Space between text and floats
 \setlength{\abovecaptionskip}{1pt}  % Space above captions
 \setlength{\belowcaptionskip}{1pt}  % Space below captions
-
+\setcounter{tocdepth}{2}
 \begin{document}
 \subfile{sections/frontpage.tex}
 
@@ -50,7 +50,7 @@
 \newpage
 \begin{abstract}
 %The abstract should provide a comprehensive overview of your task, detailing the problem you are addressing, the algorithm you have selected/developed/applied, the dataset you used for evaluation, and the results you obtained. Please ensure the structure reflects a typical computer vision paper, focusing on clarity and conciseness.
-Automated detection of epileptic seizures from Electroencephalography (EEG) data is critical for improving clinical workflows, patient care, and targeted neuromodulation therapies. Traditional visual inspection of massive EEG volumes by neurologists is slow, labor-intensive, and prone to human error. To address this, we investigate a hybrid deep learning framework combining a Convolutional Neural Network (CNN) and a Long Short-Term Memory (LSTM) network to automatically extract local structural patterns and track temporal dependencies in sequential time-series data.
+Automated detection of epileptic seizures from Electroencephalography (EEG) data is critical for improving clinical workflows, patient care, and targeted neuromodulation therapies. Traditional visual inspection of massive EEG volumes by neurologists is slow, labor-intensive, and prone to human error. To address this, a hybrid deep learning framework is investigated, combining a Convolutional Neural Network (CNN) and a Long Short-Term Memory (LSTM) network to automatically extract local structural patterns and track temporal dependencies in sequential time-series data.
 
 The proposed CNN-LSTM architecture is rigorously evaluated on the Bonn University EEG dataset for binary classification between healthy states and active seizures. To assess robustness on more complex temporal structures, the model is further benchmarked against a secondary hand-gesture dataset. Minimal preprocessing, featuring bandpass filtering and z-score normalization, is applied to preserve anomalous neural spikes. For the EEG task, data augmentation is achieved via 1-second segmenting with a 75\% overlap, utilizing stratified splits and weighted cross-entropy loss to combat class imbalances. Hyperparameters are optimized using a comprehensive 1152-configuration grid search followed by 5-fold cross-validation.
 
@@ -73,15 +73,22 @@ Experimental results demonstrate that the optimal CNN-LSTM model achieves a high
 % References
 \newpage
 %\bibliographystyle{apalike}  % Choose from: plain, apalike, ieeetr, etc.
-\printbibliography
+%\printbibliography
+\section{References}
+\printbibliography[
+heading=none
+]
 \newpage
+\section{Acknowledgments}
+Generative AI has been used in this report for proofreading, clarification and drafting of certain paragraphs.
 \appendix
-\section{Source code link}
+\section{Appendix}
+\subsection{Source code link}
 The source code of the project can be found on Github:
 \url{https://github.com/Jack-The-Dane/KIV}
-\section{5 best grid search models}
+\subsection{5 best grid search models}
 \label{app:gridsearch}
-\begin{table}
+\begin{table}[h]
     \centering
     \begin{tabular}{c|c|c|c|c|c}
         Parameter    & Model 1 & Model 2 & Model 3 & Model 4 & Model 5 \\

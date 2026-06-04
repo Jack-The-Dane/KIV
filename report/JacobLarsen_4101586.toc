@@ -17,5 +17,8 @@
 \contentsline {subsection}{\numberline {4.5}Comparing to state of the art}{8}{subsection.4.5}%
 \contentsline {section}{\numberline {5}Discussion and Conclusions}{8}{section.5}%
 \contentsline {section}{\numberline {6}Reflection}{8}{section.6}%
-\contentsline {section}{\numberline {A}Source code link}{10}{section.A}%
-\contentsline {section}{\numberline {B}5 best grid search models}{10}{section.B}%
+\contentsline {section}{\numberline {7}References}{9}{section.7}%
+\contentsline {section}{\numberline {8}Acknowledgments}{10}{section.8}%
+\contentsline {section}{\numberline {A}Appendix}{10}{section.A}%
+\contentsline {subsection}{\numberline {A.1}Source code link}{10}{subsection.A.1}%
+\contentsline {subsection}{\numberline {A.2}5 best grid search models}{10}{subsection.A.2}%
